@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
 
+# Copyright 2020 (C) Raster Software Vigo (Sergio Costas)
+#
+# This file is part of OpenDoñita
+#
+# OpenDoñita is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# OpenDoñita is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 import sys
 import struct
 
@@ -83,14 +99,18 @@ class SEQUENCE(object):
         if self.port is not None:
             print(f"({self.port}) ", end="")
         data = struct.unpack("BBBBBBBBBBBBBBBBBBBB", block[:20])
+        c = 0
         for n in data:
             d = hex(n)[2:]
-            if n < 10:
+            if n < 16:
                 d = "0"+d
             print(d + " ", end="")
+            c += 1
+            if (c%4 == 0) and (c < 20):
+                print("| ", end="")
         print()
         if len(block) > 20:
-            print("    "+ block[20:].decode('utf-8').replace('\n','\n    '))
+            print("    '"+ block[20:].decode('utf-8').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
         print()
 
 pcap = PCAP(sys.argv[1])
@@ -107,7 +127,7 @@ elif modo == "1":
     tablet = struct.unpack(">L",bytearray([192,168,18,11]))[0]
     servidor = struct.unpack(">L",bytearray([192,168,0,21]))[0]
 elif modo == "2":
-    aspiradora = struct.unpack(">L",bytearray([192,168,0,21]))[0]
+    aspiradora = struct.unpack(">L",bytearray([192,168,0,34]))[0]
     tablet = struct.unpack(">L",bytearray([192,168,18,11]))[0]
     servidor = struct.unpack(">L",bytearray([192,168,0,21]))[0]
 
@@ -122,6 +142,7 @@ def tomar_contenido(paquete):
     return paquete.payload.decode('latin1').replace('\r', '\\r').replace('\n','\\n\n    ')
 
 primero = True
+time_first = 0
 while True:
     paquete = pcap.next_pkt()
     if paquete is None:
@@ -129,6 +150,7 @@ while True:
     if primero:
         data_aspiradora_servidor.set_timedif(paquete.tiempo)
         data_servidor_aspiradora.set_timedif(paquete.tiempo)
+        time_first = paquete.tiempo
         primero = False
 
     if (paquete.src == tablet and paquete.dst == servidor) or (paquete.dst == tablet and paquete.src == servidor):
@@ -158,8 +180,10 @@ while True:
     if (paquete.dst == aspiradora and paquete.src == tablet):
         if paquete.src_port not in data_tablet_aspiradora:
             data_tablet_aspiradora[paquete.src_port] = SEQUENCE("t->a", paquete.src_port)
+            data_tablet_aspiradora[paquete.src_port].set_timedif(time_first)
         data_tablet_aspiradora[paquete.src_port].add_data(paquete)
     if (paquete.src == aspiradora and paquete.dst == tablet):
         if paquete.dst_port not in data_aspiradora_tablet:
             data_aspiradora_tablet[paquete.dst_port] = SEQUENCE("a->t", paquete.dst_port)
+            data_aspiradora_tablet[paquete.dst_port].set_timedif(time_first)
         data_aspiradora_tablet[paquete.dst_port].add_data(paquete)
