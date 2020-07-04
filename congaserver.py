@@ -25,6 +25,8 @@ from urllib.parse import parse_qs
 import json
 import struct
 import random
+import traceback
+import signal
 
 robot_data = {}
 
@@ -538,6 +540,7 @@ class Multiplexer(object):
         self._add_socket(self._http_server)
         self._robot_server = RobotServer()
         self._add_socket(self._robot_server)
+        signal.signal(signal.SIGINT, self._close_and_exit)
 
     def _add_socket(self, socket_class):
         if socket_class not in self._socklist:
@@ -555,7 +558,11 @@ class Multiplexer(object):
         while True:
             readable, writable, exceptions = select.select(self._socklist[:], [], [], 1.0)
             for has_data in readable:
-                retval = has_data.data_available()
+                try:
+                    retval = has_data.data_available()
+                except:
+                    traceback.print_exc()
+                    has_data.close()
                 if retval is not None:
                     self._add_socket(retval)
             second = datetime.datetime.now().time().second
@@ -563,6 +570,12 @@ class Multiplexer(object):
                 self._second = second
                 for to_call in self._socklist:
                     to_call.timeout()
+
+    def _close_and_exit(self, sig, frame):
+        print("Exiting gracefully")
+        for s in self._socklist[:]:
+            s.close()
+        sys.exit(0)
 
 
 if len(sys.argv) > 1:
