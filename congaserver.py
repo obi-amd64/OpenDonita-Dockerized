@@ -76,21 +76,11 @@ def send_robot_header(server_object):
 def robot_action(server_object):
     robots = robotManager.get_robot_list()
     uri = server_object.get_uri()
-    if uri == '/action/clean':
-        print("Action: clean")
+    if uri.startswith('/action/'):
+        action = uri[8:]
         for robot_id in robots:
             robot = robotManager.get_robot(robot_id)
-            robot.clean()
-    elif uri == '/action/stop':
-        print("Action: stop")
-        for robot_id in robots:
-            robot = robotManager.get_robot(robot_id)
-            robot.stop()
-    elif uri == '/action/return':
-        print("Action: return")
-        for robot_id in robots:
-            robot = robotManager.get_robot(robot_id)
-            robot.return_base()
+            robot.send_command(action)
     server_object.send_answer("OK\n", 200, "OK")
     server_object.close()
 
@@ -346,74 +336,47 @@ class RobotConnection(BaseServer):
         self._authCode = None
         self._deviceIP = None
         self._devicePort = None
-        self._waiting_for_command = False
+        self._waiting_for_command = None
 
     def timeout(self):
         self._next_command()
 
     def _next_command(self):
-        if self._waiting_for_command:
+        if self._waiting_for_command is not None:
             return
         if len(self._packet_queue) == 0:
             return
         command = self._packet_queue.pop(0)
-        if command == "clean":
-            self.clean()
-            return
-        if command == "stop":
-            self.stop()
-            return
-        if command == "base":
-            self.return_base()
+        self.send_command(command)
 
-    def clean(self):
+
+    def send_command(self, command):
         if not self._identified:
-            return
-        if self._waiting_for_command:
-            self._packet_queue.append("clean")
-            return
+            return True
+        if command == 'clean':
+            ncommand = '100'
+        elif command == 'stop':
+            ncommand = '102'
+        elif command == 'return':
+            ncommand = '104'
+        else:
+            return False # unknown command
+        if self._waiting_for_command is not None:
+            self._packet_queue.append(command)
+            return True
         self._packet_id += 1
+        self._waiting_for_command = self._packet_id
         data = '{"cmd":0,"control":{"authCode":"'
         data += self._authCode
         data += '","deviceIp":"'
         data += self._deviceIP
         data += '","devicePort":"'
         data += self._devicePort
-        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"100"}}\n'
+        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"'
+        data += ncommand
+        data += '"}}\n'
         self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-
-    def return_base(self):
-        if not self._identified:
-            return
-        if self._waiting_for_command:
-            self._packet_queue.append("clean")
-            return
-        self._packet_id += 1
-        data = '{"cmd":0,"control":{"authCode":"'
-        data += self._authCode
-        data += '","deviceIp":"'
-        data += self._deviceIP
-        data += '","devicePort":"'
-        data += self._devicePort
-        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"104"}}\n'
-        self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-
-
-    def stop(self):
-        if not self._identified:
-            return
-        if self._waiting_for_command:
-            self._packet_queue.append("stop")
-            return
-        self._packet_id += 1
-        data = '{"cmd":0,"control":{"authCode":"'
-        data += self._authCode
-        data += '","deviceIp":"'
-        data += self._deviceIP
-        data += '","devicePort":"'
-        data += self._devicePort
-        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"102"}}\n'
-        self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+        return True
 
 
     def close(self):
@@ -460,11 +423,13 @@ class RobotConnection(BaseServer):
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
-            if header[3] == self._packet_id:
-                print("ACK fine")
-            else:
-                print("ACK error")
-            self._waiting_for_command = False
+            if self._waiting_for_command is not None:
+                if header[3] == self._waiting_for_command:
+                    self._waiting_for_command = None
+                    print("ACK fine")
+                    self._next_command()
+                else:
+                    print("ACK error")
             return True
         # Map
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):
@@ -515,26 +480,11 @@ class Robot(object):
     def get_status(self):
         return self._status
 
-    def clean(self):
+    def send_command(self, command):
         if self._connection is None:
             print("No conectado")
             return False
-        print("Lanzo clean")
-        self._connection.clean()
-
-    def stop(self):
-        if self._connection is None:
-            print("No conectado")
-            return False
-        print("Lanzo stop")
-        self._connection.stop()
-
-    def return_base(self):
-        if self._connection is None:
-            print("No conectado")
-            return False
-        print("Lanzo return")
-        self._connection.return_base()
+        return self._connection.send_command(command)
 
 
 class Multiplexer(object):
