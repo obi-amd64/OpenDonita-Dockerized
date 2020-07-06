@@ -396,7 +396,7 @@ class RobotConnection(BaseServer):
         data += '","devicePort":"'
         data += self._devicePort
         data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"104"}}\n'
-        self._send_packet(0x00c800fa, 0x4cd60000, self._packet_id, 0x00, data)
+        self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
 
 
     def stop(self):
@@ -465,6 +465,10 @@ class RobotConnection(BaseServer):
             else:
                 print("ACK error")
             self._waiting_for_command = False
+            return True
+        # Map
+        if self._check_header(header, None, 0x0014, 0x0001, 0x00):
+            print("Map")
             return True
         print("Unknown packet")
         print(header)

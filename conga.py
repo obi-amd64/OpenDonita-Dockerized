@@ -18,6 +18,7 @@
 
 import sys
 import struct
+import datetime
 
 if len(sys.argv) < 2:
     print("Uso: conga.py FICHERO.PCAP")
@@ -41,6 +42,7 @@ class TCP(object):
         payload = ip.payload
         self.src_port = struct.unpack(">H", payload[0:2])[0]
         self.dst_port = struct.unpack(">H", payload[2:4])[0]
+        self.sequence = struct.unpack(">L", payload[4:8])[0]
         self.src = ip.src
         self.dst = ip.dst
         offset = (payload[12] // 4) & 0x3C
@@ -91,10 +93,12 @@ class SEQUENCE(object):
         if len(self._data) >= size:
             block = self._data[:size]
             self._data = self._data[size:]
-            self._print_block(block, packet.tiempo)
+            self._print_block(block, packet.tiempo, packet.sequence)
 
-    def _print_block(self, block, tiempo):
-        print(tiempo - self._timedif)
+    def _print_block(self, block, tiempo, seq):
+        tmp = datetime.datetime.utcfromtimestamp(int(tiempo)).strftime('%Y-%m-%d %H:%M:%S')
+        print(f'{tmp} {tiempo - self._timedif}')
+        print(seq)
         print(f"{self._way} ", end="")
         if self.port is not None:
             print(f"({self.port}) ", end="")
@@ -130,6 +134,10 @@ elif modo == "2":
     aspiradora = struct.unpack(">L",bytearray([192,168,0,34]))[0]
     tablet = struct.unpack(">L",bytearray([192,168,18,11]))[0]
     servidor = struct.unpack(">L",bytearray([192,168,0,21]))[0]
+elif modo == "3":
+    aspiradora = struct.unpack(">L",bytearray([192,168,18,36]))[0]
+    tablet = struct.unpack(">L",bytearray([192,168,18,11]))[0]
+    servidor = struct.unpack(">L",bytearray([47,91,67,181]))[0]
 
 tablet_servidor = False
 
