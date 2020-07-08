@@ -27,8 +27,10 @@ import struct
 import random
 import traceback
 import signal
+import os
 
 robot_data = {}
+html_path = "html"
 
 def robot_clear_time(server_object):
     server_object.convert_data()
@@ -75,8 +77,8 @@ def send_robot_header(server_object):
 
 def robot_action(server_object):
     robots = robotManager.get_robot_list()
-    uri = server_object.get_uri()
-    if uri.startswith('/action/'):
+    uri = server_object.get_path()
+    if uri.startswith('/robot/'):
         action = uri[8:]
         for robot_id in robots:
             robot = robotManager.get_robot(robot_id)
@@ -85,19 +87,45 @@ def robot_action(server_object):
     server_object.close()
 
 
-def robot_control(server_object):
-    with open("index.html", "r") as page:
-        data = page.read()
+def robot_list(server_object):
+    robots = robotManager.get_robot_list()
+    data = []
+    for robot_id in robots:
+        data.append(robot_id)
+    server_object.send_answer_json_close(data)
 
-    server_object.send_answer(data, 200, "OK")
+
+def robot_control(server_object):
+    global html_path
+
+    path = server_object.get_path()
+    print(path)
+    while (path != '') and ((path[0] == '/') or (path[0] == '.')):
+        path = path[1:]
+    if path == "":
+        path = "index.html"
+    path = os.path.join(html_path, path)
+    print(f"Reading {path}")
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as page:
+                data = page.read()
+            server_object.send_answer(data, 200, "OK")
+        except:
+            print("Error 401")
+            server_object.send_answer('<html><head></head><body><h1>401 Error while reading the file</h1><p>There was an erro while trying to read that file</p></body></html>', 401, "Error reading file")
+    else:
+        print("Error 404")
+        server_object.send_answer('<html><head></head><body><h1>404 File not found</h1></body></html>', 404, "File not found")
     server_object.close()
 
 registered_pages = {
     '/baole-web/common/sumbitClearTime.do': robot_clear_time,
     '/baole-web/common/getToken.do': robot_get_token,
     '/baole-web/common/*': robot_global,
-    '/action/*': robot_action,
-    '/': robot_control
+    '/robot/*': robot_action,
+    '/list': robot_list,
+    '/*': robot_control
 }
 
 
@@ -238,14 +266,15 @@ class HTTPConnection(BaseServer):
 
         length = 0
         jump = None
+        path = self.get_path()
         for page in registered_pages:
             if page[-1] == '*':
-                if self._URI.startswith(page[:-1]):
+                if path.startswith(page[:-1]):
                     if length < len(page):
                         jump = page
                         length = len(page)
                 continue
-            if self._URI == page:
+            if path == page:
                 print(f'{self._URI}')
                 print(f'{self._data}')
                 registered_pages[page](self)
@@ -260,6 +289,10 @@ class HTTPConnection(BaseServer):
 
     def add_header(self, name, value):
         self._headers_answer += (f'{name}: {value}\r\n').encode('utf8')
+
+    def send_answer_json_close(self, data):
+        self.send_answer(json.dumps(data).encode('utf8'), 200, 'OK')
+        self.close()
 
     def send_answer(self, data, error = 200, text = ''):
         if isinstance(data, str):
@@ -279,6 +312,24 @@ class HTTPConnection(BaseServer):
 
     def get_uri(self):
         return self._URI
+
+    def get_path(self):
+        pos = self._URI.find("?")
+        if pos == -1:
+            return self._URI
+        else:
+            return self._URI[:pos]
+
+    def get_params(self):
+        pos = self._URI.find("?")
+        if pos == -1:
+            return {}
+        else:
+            tmpdata = parse_qs(self._URI[pos+1:])
+            data = {}
+            for element in tmpdata:
+                data[element] = tmpdata[element][0]
+            return data
 
     def convert_data(self):
         if ('Content-Type' in self.headers):
