@@ -435,6 +435,11 @@ class RobotConnection(BaseServer):
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):
             print("Map")
             return True
+        # Error
+        if self._check_header(header, None, 0x0016, 0x0001, 0x00):
+            print("Error")
+            self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
+            return True
         print("Unknown packet")
         print(header)
         print(payload)
