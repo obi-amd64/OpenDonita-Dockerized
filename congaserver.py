@@ -79,7 +79,7 @@ def robot_action(server_object):
     robots = robotManager.get_robot_list()
     uri = server_object.get_path()
     if uri.startswith('/robot/'):
-        action = uri[8:]
+        action = uri[7:]
         for robot_id in robots:
             robot = robotManager.get_robot(robot_id)
             robot.send_command(action)
@@ -99,13 +99,12 @@ def robot_control(server_object):
     global html_path
 
     path = server_object.get_path()
-    print(path)
     while (path != '') and ((path[0] == '/') or (path[0] == '.')):
         path = path[1:]
     if path == "":
         path = "index.html"
     path = os.path.join(html_path, path)
-    print(f"Reading {path}")
+    print(f"Reading file {path}")
     if os.path.exists(path):
         try:
             with open(path, "r") as page:
@@ -200,8 +199,14 @@ class BaseServer(object):
         """ Called when the socket is closed and the class will be destroyed """
         if not self._closed:
             print(f"Closing socket {self.fileno()}")
-            self._sock.shutdown(socket.SHUT_RDWR)
-            self._sock.close()
+            try:
+                self._sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            try:
+                self._sock.close()
+            except:
+                pass
             self._closed = True
             self.closedSignal.emit()
 
@@ -413,6 +418,7 @@ class RobotConnection(BaseServer):
         else:
             return False # unknown command
         if self._waiting_for_command is not None:
+            print("waiting for command")
             self._packet_queue.append(command)
             return True
         self._packet_id += 1
@@ -513,6 +519,20 @@ class RobotConnection(BaseServer):
             data = data.encode('latin1')
         header = bytearray(struct.pack("<LLLLL", 20 + len(data), value1, value2, packet_id, value3))
         self._sock.send(header + data)
+        # data2 = struct.unpack("BBBBBBBBBBBBBBBBBBBB", header)
+        # c = 0
+        # for n in data2:
+        #     d = hex(n)[2:]
+        #     if n < 16:
+        #         d = "0"+d
+        #     print(d + " ", end="")
+        #     c += 1
+        #     if (c%4 == 0) and (c < 20):
+        #         print("| ", end="")
+        # print()
+        # if len(data) > 0:
+        #     print("    '"+ data.decode('latin1').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
+        # print()
 
 
 
