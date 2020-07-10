@@ -564,11 +564,11 @@ class Robot(object):
 
 
 class Multiplexer(object):
-    def __init__(self, port = 80):
+    def __init__(self, port_http = 80, port_bona = 20008):
         self._socklist = []
-        self._http_server = HTTPServer(port)
+        self._http_server = HTTPServer(port_http)
         self._add_socket(self._http_server)
-        self._robot_server = RobotServer()
+        self._robot_server = RobotServer(port_bona)
         self._add_socket(self._robot_server)
         signal.signal(signal.SIGINT, self._close_and_exit)
 
@@ -608,9 +608,11 @@ class Multiplexer(object):
         sys.exit(0)
 
 
-if len(sys.argv) > 1:
-    port = int(sys.argv[1])
+if len(sys.argv) > 2:
+    port_http = int(sys.argv[1])
+    port_bona = int(sys.argv[2])
 else:
-    port = 80
-multiplexer = Multiplexer(port)
+    port_http = 80
+    port_bona = 20008
+multiplexer = Multiplexer(port_http, port_bona)
 multiplexer.run()

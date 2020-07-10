@@ -8,6 +8,12 @@ import time
 import struct
 import json
 
+http_port = 80
+bona_port = 20008
+if len(sys.argv) > 2:
+    http_port = int(sys.argv[1])
+    bona_port = int(sys.argv[2])
+
 # Emulates a Cecotec Conga 1490
 
 def ask_http(uri, data = None):
@@ -25,7 +31,7 @@ data = {"appKey":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "deviceId":"yyyyyyyyyyyyyyy",
     "deviceType":"1",
     "clearTime":"0"}
-ask_http('http://127.0.0.1/baole-web/common/sumbitClearTime.do', data)
+ask_http(f'http://127.0.0.1:{http_port}/baole-web/common/sumbitClearTime.do', data)
 
 time.sleep(1)
 
@@ -38,12 +44,12 @@ data = {"appKey":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 "version": '{"wifi":"1.0.48","mcu":"3.9.1714(513)"}',
 "sign":"SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS"}
 
-ask_http('http://127.0.0.1/baole-web/common/getToken.do', data)
+ask_http(f'http://127.0.0.1:{http_port}/baole-web/common/getToken.do', data)
 
 time.sleep(1)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(('127.0.0.1',20008))
+s.connect(('127.0.0.1', bona_port))
 
 counter = 1
 received_data = b""
