@@ -179,10 +179,6 @@ class BaseServer(object):
     def fileno(self):
         return self._sock.fileno()
 
-    def timeout(self):
-        """ Called once per second. Useful for timeouts """
-        pass
-
     def new_data(self):
         """ Called every time new data is added to self._data
             Overwrite to process arriving data. The function must
@@ -380,6 +376,8 @@ class RobotServer(BaseServer):
 
 class RobotConnection(BaseServer):
     def __init__(self, sock, address):
+        global multiplexer
+
         super().__init__(sock)
         print("New robot connection")
         self._address = address
@@ -393,8 +391,9 @@ class RobotConnection(BaseServer):
         self._deviceIP = None
         self._devicePort = None
         self._waiting_for_command = None
+        multiplexer.timer.connect(self.timeout)
 
-    def timeout(self):
+    def timeout(self, signame, caller, now):
         self._next_command()
 
     def _next_command(self):
@@ -571,6 +570,9 @@ class Multiplexer(object):
         self._robot_server = RobotServer(port_bona)
         self._add_socket(self._robot_server)
         signal.signal(signal.SIGINT, self._close_and_exit)
+        self.timer = Signal("timer", self)
+        self._before = datetime.datetime.now().timestamp()
+        self._interval = 0.5
 
     def _add_socket(self, socket_class):
         if socket_class not in self._socklist:
@@ -586,7 +588,7 @@ class Multiplexer(object):
     def run(self):
         self._second = datetime.datetime.now().time().second
         while True:
-            readable, writable, exceptions = select.select(self._socklist[:], [], [], 1.0)
+            readable, writable, exceptions = select.select(self._socklist[:], [], [], self._interval)
             for has_data in readable:
                 try:
                     retval = has_data.data_available()
@@ -595,11 +597,10 @@ class Multiplexer(object):
                     has_data.close()
                 if retval is not None:
                     self._add_socket(retval)
-            second = datetime.datetime.now().time().second
-            if second != self._second:
-                self._second = second
-                for to_call in self._socklist:
-                    to_call.timeout()
+            now = datetime.datetime.now().timestamp()
+            if now >= (self._before + self._interval):
+                self._before = now
+                self.timer.emit(now)
 
     def _close_and_exit(self, sig, frame):
         print("Exiting gracefully")
