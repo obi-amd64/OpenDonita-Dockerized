@@ -437,6 +437,7 @@ class RobotConnection(BaseServer):
 
     def close(self):
         print("Robot disconnected")
+        multiplexer.timer.disconnect(self.timeout)
         super().close()
         self._identified = False
 
