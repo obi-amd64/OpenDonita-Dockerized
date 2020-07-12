@@ -82,8 +82,8 @@ def robot_action(server_object):
         action = uri[7:]
         for robot_id in robots:
             robot = robotManager.get_robot(robot_id)
-            robot.send_command(action)
-    server_object.send_answer("OK\n", 200, "OK")
+            answer = robot.send_command(action, server_object.get_params())
+    server_object.send_answer(answer, 200, "OK")
     server_object.close()
 
 
@@ -392,6 +392,7 @@ class RobotConnection(BaseServer):
         self._devicePort = None
         self._waiting_for_command = None
         multiplexer.timer.connect(self.timeout)
+        self.statusUpdate = Signal("status", self)
 
     def timeout(self, signame, caller, now):
         self._next_command()
@@ -441,6 +442,7 @@ class RobotConnection(BaseServer):
         super().close()
         self._identified = False
 
+
     def new_data(self):
         global robotManager
 
@@ -477,11 +479,13 @@ class RobotConnection(BaseServer):
         if self._check_header(header, None, 0x0018, 0x0001, 0x00):
             print("Status")
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
+            self._send_payload(payload)
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
             if self._waiting_for_command is not None:
                 if header[3] == self._waiting_for_command:
+                    self._send_payload(payload)
                     self._waiting_for_command = None
                     print("ACK fine")
                     self._next_command()
@@ -491,6 +495,7 @@ class RobotConnection(BaseServer):
         # Map
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):
             print("Map")
+            self._send_payload(payload)
             return True
         # Error
         if self._check_header(header, None, 0x0016, 0x0001, 0x00):
@@ -502,6 +507,16 @@ class RobotConnection(BaseServer):
         print(payload)
         return True
 
+
+    def _send_payload(self, payload):
+        if len(payload) == 0:
+            return
+        try:
+            jsonPayload = json.loads(payload)
+        except:
+            print(f'Payload is not a JSON file: "{payload}"')
+            return
+        self.statusUpdate.emit(jsonPayload)
 
     def _check_header(self, header, value0, value1, value2, value4):
         if (value0 is not None) and (value0 != header[0]):
@@ -539,8 +554,14 @@ class RobotConnection(BaseServer):
 class Robot(object):
     """ Manages each physical robot """
     def __init__(self):
+        super().__init__()
         self._connection = None
-        self._status = "idle"
+        self._notecmdValues = {}
+        self._notecmdKeys = ['workState','workMode','fan','direction','brush','battery','voice','error','standbyMode',
+                             'waterTank','clearComponent','waterMark','version','attract','deviceIp','devicePort',
+                             'cleanGoon', 'clearArea','clearTime','clearSign','clearModule','isFinish','chargerPos',
+                             'map','track','errorCode','doTime']
+        self._resetStatus()
 
     def connected(self, connection):
         if self._connection is not None:
@@ -549,18 +570,48 @@ class Robot(object):
             self._connection.close()
         self._connection = connection
         connection.closedSignal.connect(self.disconnected)
+        connection.statusUpdate.connect(self.statusUpdate)
+
+    def _resetStatus(self):
+        for key in self._notecmdKeys:
+            self._notecmdValues[key] = ''
 
     def disconnected(self, name, connection):
         self._connection = None
+        self._resetStatus()
 
     def get_status(self):
-        return self._status
+        return json.dumps(self._notecmdValues)
 
-    def send_command(self, command):
+    def send_command(self, command, params):
         if self._connection is None:
             print("No conectado")
-            return False
-        return self._connection.send_command(command)
+            return '{}'
+
+        if command == 'setStatus':
+            print(params)
+            for key in params:
+                print(key)
+                if key not in self._notecmdKeys:
+                    continue
+                self._notecmdValues[key] = params[key]
+            return '{}'
+
+        if command == 'getStatus':
+            return self.get_status()
+
+        self._connection.send_command(command)
+        return 'OK'
+
+    def statusUpdate(self, signame, sender, status):
+        if 'value' not in status:
+            return
+        value = status['value']
+        if ('noteCmd' in value) or ('transitCmd' in value):
+            for key in value:
+                if key not in self._notecmdKeys:
+                    continue
+                self._notecmdValues[key] = value[key]
 
 
 class Multiplexer(object):

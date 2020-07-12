@@ -4,10 +4,17 @@
         <title>Control de do&ntilde;ita</title>
         <script type="text/javascript">
             var xhttp = new XMLHttpRequest();
-			function command(uri) {
+
+			function command(uri, printData) {
                 xhttp.open("GET", uri, true);
                 xhttp.send();
             }
+
+            function handleResponse() {
+                let salida = document.getElementById('salida');
+                salida.innerHTML = xhttp.responseText;
+            }
+            xhttp.addEventListener('load', handleResponse);
 		</script>
     </head>
     <body>
@@ -15,5 +22,8 @@
         <p><input type="button" value="Limpiar" onclick="command('/robot/clean');"></p>
         <p><input type="button" value="Parar" onclick="command('/robot/stop');"></p>
         <p><input type="button" value="Regresar" onclick="command('/robot/return');"></p>
+        <p><input type="button" value="leer" onclick="command('robot/getStatus');"></p>
+        <p><input type="button" value="escribir" onclick="command('robot/setStatus?map=holamundo');"></p>
+        <p id="salida"></p>
     </body>
 </html>
