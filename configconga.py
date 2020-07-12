@@ -19,20 +19,24 @@
 import socket
 import sys
 
+if len(sys.argv) != 3:
+    print("Usage: configconga.py WIFI_SSID WIFI_PASSWORD")
+    sys.exit(1)
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 server_address = ('192.168.4.1', 80)
 sock.connect(server_address)
 
-message = b'GET /robot/getRobotInfo.do?ssid=congawifi&pwd=congapass&jDomain=bl-app-eu.robotbona.com&jPort=8082&sDomain=bl-im-eu.robotbona.com&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
+message = f'GET /robot/getRobotInfo.do?ssid={sys.argv[1]}&pwd={sys.argv[2]}&jDomain=bl-app-eu.robotbona.com&jPort=8082&sDomain=bl-im-eu.robotbona.com&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
 
-sock.sendall(message)
+sock.sendall(message.encode('utf8'))
 
 while True:
     d = sock.recv(1)
     if len(d) == 0:
         break
-    print(d.decode('latin1'), end="")
+    print(d.decode('utf8'), end="")
 
 
 # GET /robot/getRobotInfo.do?ssid=XXXXXXXX&pwd=YYYYYYYY&jDomain=bl-app-eu.robotbona.com&jPort=8082&sDomain=bl-im-eu.robotbona.com&sPort=20008&cleanSTime=5 HTTP/1.1
