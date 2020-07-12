@@ -22,6 +22,16 @@
         <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
         <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
         <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
+        <p><input type="button" value="Sonido ON" onclick="command('/robot/all/sound?status=1');"></p>
+        <p><input type="button" value="Sonido OFF" onclick="command('/robot/all/sound?status=0');"></p>
+        <p><input type="button" value="FAN 0" onclick="command('robot/all/fan?speed=0');"></p>
+        <p><input type="button" value="FAN 1" onclick="command('robot/all/fan?speed=1');"></p>
+        <p><input type="button" value="FAN 2" onclick="command('robot/all/fan?speed=2');"></p>
+        <p><input type="button" value="FAN 3" onclick="command('robot/all/fan?speed=3');"></p>
+        <p><input type="button" value="WATERTANK 0" onclick="command('robot/all/watertank?speed=0');"></p>
+        <p><input type="button" value="WATERTANK 1" onclick="command('robot/all/watertank?speed=1');"></p>
+        <p><input type="button" value="WATERTANK 2" onclick="command('robot/all/watertank?speed=2');"></p>
+        <p><input type="button" value="WATERTANK 3" onclick="command('robot/all/watertank?speed=3');"></p>
         <p><input type="button" value="Robots" onclick="command('/robot/list');"></p>
         <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
         <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>

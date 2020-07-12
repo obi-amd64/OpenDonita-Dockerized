@@ -78,6 +78,7 @@ def send_robot_header(server_object):
 def robot_action(server_object):
     robots = robotManager.get_robot_list()
     uri = server_object.get_path()
+    error = None
     if uri.startswith('/robot/'):
         action = uri[7:]
         pos = action.find('/')
@@ -274,6 +275,8 @@ class HTTPConnection(BaseServer):
             http_line = header[0].decode('utf8').split(" ")
             self._command = http_line[0]
             self._URI = http_line[1]
+            if (len(self._URI) == 0) or (self._URI[0] != '/'):
+                self._URI = '/' + self._URI
             self._protocol = http_line[2]
             for entry in header[1:]:
                 pos = entry.find(b":")
@@ -426,24 +429,67 @@ class RobotConnection(BaseServer):
             return
         if len(self._packet_queue) == 0:
             return
-        command = self._packet_queue.pop(0)
-        self.send_command(command)
+        command, params = self._packet_queue.pop(0)
+        self.send_command(command, params)
 
 
-    def send_command(self, command):
+    def send_command(self, command, params):
         if not self._identified:
             return 4, "Not identified"
+        extraCommand = None
+        extraCommand2 = None
         if command == 'clean':
             ncommand = '100'
         elif command == 'stop':
             ncommand = '102'
         elif command == 'return':
             ncommand = '104'
+        elif command == 'updatemap':
+            ncommand = '131'
+        elif command == 'sound':
+            if "status" not in params:
+                return 6, "Missing parameter (status)"
+            if params['status'] == '0':
+                ncommand = '125'
+            elif params['status'] == '1':
+                ncommand = '123'
+            else:
+                return 7, "Invalid value (valid values are 0 and 1)"
+        elif command == 'fan':
+            ncommand = '110'
+            if 'speed' not in params:
+                return 6, "Missing parameter (speed)"
+            print(f"speed: '{params['speed']}'; {type(params['speed'])}")
+            if params['speed'] == '0':
+                extraCommand = '"fan":"1"' # OFF
+            elif params['speed'] == '1':
+                extraCommand = '"fan":"4"' # ECO
+            elif params['speed'] == '2':
+                extraCommand = '"fan":"2"' # NORMAL
+            elif params['speed'] == '3':
+                extraCommand = '"fan":"3"' # TURBO
+            else:
+                return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+        elif command == 'watertank':
+            ncommand = '145'
+            if 'speed' not in params:
+                return 6, "Missing parameter (speed)"
+            print(f"speed: '{params['speed']}'; {type(params['speed'])}")
+            if params['speed'] == '0':
+                extraCommand2 = '"waterTank":"255"' # OFF
+            elif params['speed'] == '1':
+                extraCommand2 = '"waterTank":"60"' # SMALL
+            elif params['speed'] == '2':
+                extraCommand2 = '"waterTank":"40"' # NORMAL
+            elif params['speed'] == '3':
+                extraCommand2 = '"waterTank":"20"' # FAST
+            else:
+                return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
         else:
             return 5, "Unknown command"
         if self._waiting_for_command is not None:
             print("waiting for command")
-            self._packet_queue.append(command)
+            self._packet_queue.append((command, params))
             return 0, "{}"
         self._packet_id += 1
         self._waiting_for_command = self._packet_id
@@ -453,9 +499,16 @@ class RobotConnection(BaseServer):
         data += self._deviceIP
         data += '","devicePort":"'
         data += self._devicePort
-        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{"transitCmd":"'
+        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
+        if extraCommand is not None:
+            data += extraCommand+','
+        data += '"transitCmd":"'
         data += ncommand
-        data += '"}}\n'
+        data += '"'
+        if extraCommand2 is not None:
+            data += ','+extraCommand2
+        data += '}}\n'
+        print(f"Sending command {data}")
         self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
         return 0, "{}"
 
@@ -623,7 +676,7 @@ class Robot(object):
         if command == 'getStatus':
             return 0, self.get_status()
 
-        return self._connection.send_command(command)
+        return self._connection.send_command(command, params)
 
 
     def statusUpdate(self, signame, sender, status):
