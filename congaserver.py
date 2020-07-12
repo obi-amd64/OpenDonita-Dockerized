@@ -459,7 +459,6 @@ class RobotConnection(BaseServer):
             ncommand = '110'
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
-            print(f"speed: '{params['speed']}'; {type(params['speed'])}")
             if params['speed'] == '0':
                 extraCommand = '"fan":"1"' # OFF
             elif params['speed'] == '1':
@@ -474,7 +473,6 @@ class RobotConnection(BaseServer):
             ncommand = '145'
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
-            print(f"speed: '{params['speed']}'; {type(params['speed'])}")
             if params['speed'] == '0':
                 extraCommand2 = '"waterTank":"255"' # OFF
             elif params['speed'] == '1':
@@ -485,6 +483,26 @@ class RobotConnection(BaseServer):
                 extraCommand2 = '"waterTank":"20"' # FAST
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+        elif command == 'mode':
+            ncommand = '106'
+            if 'type' not in params:
+                return 6, "Missing parameter (type)"
+            if params['type'] == 'auto':
+                extraCommand = '"mode":"11"'
+            elif params['type'] == 'giro':
+                extraCommand = '"mode":"1"'
+            elif params['type'] == 'random':
+                extraCommand = '"mode":"3"'
+            elif params['type'] == 'borders':
+                extraCommand = '"mode":"4"'
+            elif params['type'] == 'area':
+                extraCommand = '"mode":"6"'
+            elif params['type'] == 'x2':
+                extraCommand = '"mode":"8"'
+            elif params['type'] == 'scrub':
+                extraCommand = '"mode":"10"'
+            else:
+                return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
         else:
             return 5, "Unknown command"
         if self._waiting_for_command is not None:
