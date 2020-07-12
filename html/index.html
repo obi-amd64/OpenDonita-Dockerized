@@ -19,11 +19,12 @@
     </head>
     <body>
         <h1>OpenDoñita</h1>
-        <p><input type="button" value="Limpiar" onclick="command('/robot/clean');"></p>
-        <p><input type="button" value="Parar" onclick="command('/robot/stop');"></p>
-        <p><input type="button" value="Regresar" onclick="command('/robot/return');"></p>
-        <p><input type="button" value="leer" onclick="command('robot/getStatus');"></p>
-        <p><input type="button" value="escribir" onclick="command('robot/setStatus?map=holamundo');"></p>
+        <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
+        <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
+        <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
+        <p><input type="button" value="Robots" onclick="command('/list');"></p>
+        <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
+        <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>
         <p id="salida"></p>
     </body>
 </html>

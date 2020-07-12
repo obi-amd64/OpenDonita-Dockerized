@@ -80,9 +80,25 @@ def robot_action(server_object):
     uri = server_object.get_path()
     if uri.startswith('/robot/'):
         action = uri[7:]
-        for robot_id in robots:
-            robot = robotManager.get_robot(robot_id)
-            answer = robot.send_command(action, server_object.get_params())
+        pos = action.find('/')
+        if pos == -1:
+            server_object.send_answer('{"error":1, "error_text":"Missing robot ID"}', 400, "MISSING_ROBOT_ID")
+            server_object.close()
+            return
+        robotId = action[:pos]
+        action = action[pos+1:]
+        if robotId == "all":
+            for robot_id in robots:
+                robot = robotManager.get_robot(robot_id)
+                answer = robot.send_command(action, server_object.get_params())
+        else:
+            if robotId in robots:
+                robot = robotManager.get_robot(robotId)
+                answer = robot.send_command(action, server_object.get_params())
+            else:
+                server_object.send_answer('{"error":2, "error_text":"Invalid robot ID"}', 400, "INVALID_ROBOT_ID")
+                server_object.close()
+                return
     server_object.send_answer(answer, 200, "OK")
     server_object.close()
 
