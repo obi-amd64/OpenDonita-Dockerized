@@ -82,7 +82,7 @@ def robot_action(server_object):
         action = uri[7:]
         pos = action.find('/')
         if pos == -1:
-            server_object.send_answer('{"error":1, "error_text":"Missing robot ID"}', 400, "MISSING_ROBOT_ID")
+            server_object.send_answer('{"error":1, "value":"Missing robot ID"}', 400, "MISSING_ROBOT_ID")
             server_object.close()
             return
         robotId = action[:pos]
@@ -90,16 +90,23 @@ def robot_action(server_object):
         if robotId == "all":
             for robot_id in robots:
                 robot = robotManager.get_robot(robot_id)
-                answer = robot.send_command(action, server_object.get_params())
+                error, answer = robot.send_command(action, server_object.get_params())
         else:
             if robotId in robots:
                 robot = robotManager.get_robot(robotId)
-                answer = robot.send_command(action, server_object.get_params())
+                error, answer = robot.send_command(action, server_object.get_params())
             else:
-                server_object.send_answer('{"error":2, "error_text":"Invalid robot ID"}', 400, "INVALID_ROBOT_ID")
+                server_object.send_answer('{"error":2, "value":"Invalid robot ID"}', 400, "INVALID_ROBOT_ID")
                 server_object.close()
                 return
-    server_object.send_answer(answer, 200, "OK")
+    if (error is None) or (answer is None):
+        answer = '{}'
+        error = 0
+    if error != 0:
+        errcode = 400
+    else:
+        errcode = 200
+    server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', errcode, "")
     server_object.close()
 
 
@@ -138,8 +145,8 @@ registered_pages = {
     '/baole-web/common/sumbitClearTime.do': robot_clear_time,
     '/baole-web/common/getToken.do': robot_get_token,
     '/baole-web/common/*': robot_global,
+    '/robot/list': robot_list,
     '/robot/*': robot_action,
-    '/list': robot_list,
     '/*': robot_control
 }
 
@@ -264,14 +271,14 @@ class HTTPConnection(BaseServer):
             header = self._data[:pos].split(b"\r\n")
             self._data = self._data[pos+4:]
             self.headers = {}
-            http_line = header[0].decode('latin1').split(" ")
+            http_line = header[0].decode('utf8').split(" ")
             self._command = http_line[0]
             self._URI = http_line[1]
             self._protocol = http_line[2]
             for entry in header[1:]:
                 pos = entry.find(b":")
                 if pos != -1:
-                    self.headers[entry[:pos].decode('latin1').strip()] = entry[pos+1:].decode('latin1').strip()
+                    self.headers[entry[:pos].decode('utf8').strip()] = entry[pos+1:].decode('utf8').strip()
         if 'Content-Length' in self.headers:
             if len(self._data) < int(self.headers['Content-Length']):
                 return False
@@ -308,7 +315,8 @@ class HTTPConnection(BaseServer):
         self._headers_answer += (f'{name}: {value}\r\n').encode('utf8')
 
     def send_answer_json_close(self, data):
-        self.send_answer(json.dumps(data).encode('utf8'), 200, 'OK')
+        result = '{"error":0, "value": '+json.dumps(data)+'}'
+        self.send_answer(result.encode('utf8'), 200, 'OK')
         self.close()
 
     def send_answer(self, data, error = 200, text = ''):
@@ -351,7 +359,7 @@ class HTTPConnection(BaseServer):
     def convert_data(self):
         if ('Content-Type' in self.headers):
             if self.headers['Content-Type'] == 'application/x-www-form-urlencoded':
-                tmpdata = parse_qs(self._data.decode('latin1'))
+                tmpdata = parse_qs(self._data.decode('utf8'))
                 data = {}
                 for element in tmpdata:
                     data[element] = tmpdata[element][0]
@@ -424,7 +432,7 @@ class RobotConnection(BaseServer):
 
     def send_command(self, command):
         if not self._identified:
-            return True
+            return 4, "Not identified"
         if command == 'clean':
             ncommand = '100'
         elif command == 'stop':
@@ -432,11 +440,11 @@ class RobotConnection(BaseServer):
         elif command == 'return':
             ncommand = '104'
         else:
-            return False # unknown command
+            return 5, "Unknown command"
         if self._waiting_for_command is not None:
             print("waiting for command")
             self._packet_queue.append(command)
-            return True
+            return 0, "{}"
         self._packet_id += 1
         self._waiting_for_command = self._packet_id
         data = '{"cmd":0,"control":{"authCode":"'
@@ -449,7 +457,7 @@ class RobotConnection(BaseServer):
         data += ncommand
         data += '"}}\n'
         self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-        return True
+        return 0, "{}"
 
 
     def close(self):
@@ -547,7 +555,7 @@ class RobotConnection(BaseServer):
 
     def _send_packet(self, value1, value2, packet_id, value3, data = b""):
         if isinstance(data, str):
-            data = data.encode('latin1')
+            data = data.encode('utf8')
         header = bytearray(struct.pack("<LLLLL", 20 + len(data), value1, value2, packet_id, value3))
         self._sock.send(header + data)
         # data2 = struct.unpack("BBBBBBBBBBBBBBBBBBBB", header)
@@ -562,7 +570,7 @@ class RobotConnection(BaseServer):
         #         print("| ", end="")
         # print()
         # if len(data) > 0:
-        #     print("    '"+ data.decode('latin1').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
+        #     print("    '"+ data.decode('utf8').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
         # print()
 
 
@@ -601,8 +609,7 @@ class Robot(object):
 
     def send_command(self, command, params):
         if self._connection is None:
-            print("No conectado")
-            return '{}'
+            return 3, '"Not connected"'
 
         if command == 'setStatus':
             print(params)
@@ -611,13 +618,13 @@ class Robot(object):
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = params[key]
-            return '{}'
+            return 0, self.get_status()
 
         if command == 'getStatus':
-            return self.get_status()
+            return 0, self.get_status()
 
-        self._connection.send_command(command)
-        return 'OK'
+        return self._connection.send_command(command)
+
 
     def statusUpdate(self, signame, sender, status):
         if 'value' not in status:
