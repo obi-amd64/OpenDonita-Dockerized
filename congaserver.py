@@ -436,8 +436,11 @@ class RobotConnection(BaseServer):
     def send_command(self, command, params):
         if not self._identified:
             return 4, "Not identified"
+
+        wait_for_ack = True
         extraCommand = None
         extraCommand2 = None
+
         if command == 'clean':
             ncommand = '100'
         elif command == 'stop':
@@ -503,14 +506,23 @@ class RobotConnection(BaseServer):
                 extraCommand = '"mode":"10"'
             else:
                 return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
+        elif command == 'notifyconnection': # seems to be sent whenever the tablet connects to the server
+            ncommand = '400'
+            wait_for_ack = False
+        elif command == 'askstatus': # seems to ask the robot to send a Status packet
+            ncommand = '98'
+            wait_for_ack = False
         else:
             return 5, "Unknown command"
+
         if self._waiting_for_command is not None:
             print("waiting for command")
             self._packet_queue.append((command, params))
             return 0, "{}"
+
         self._packet_id += 1
-        self._waiting_for_command = self._packet_id
+        if wait_for_ack:
+            self._waiting_for_command = self._packet_id
         data = '{"cmd":0,"control":{"authCode":"'
         data += self._authCode
         data += '","deviceIp":"'
@@ -528,6 +540,8 @@ class RobotConnection(BaseServer):
         data += '}}\n'
         print(f"Sending command {data}")
         self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+        if not wait_for_ack:
+            self._next_command()
         return 0, "{}"
 
 

@@ -214,6 +214,14 @@ while True:
         send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "400"):
+        print("Notify connection")
+        continue
+
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "98"):
+        print("Update status")
+        continue
+
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, None):
         print(f"Unknown command {data['value']['transitCmd']}")
         # ACK for any other command

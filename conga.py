@@ -19,6 +19,7 @@
 import sys
 import struct
 import datetime
+import json
 
 if len(sys.argv) < 2:
     print("Uso: conga.py FICHERO.PCAP")
@@ -94,6 +95,11 @@ class SEQUENCE(object):
             block = self._data[:size]
             self._data = self._data[size:]
             self._print_block(block, packet.tiempo, packet.sequence)
+            if len(block) > 20:
+                return block[20:].decode('utf-8')
+            else:
+                return None
+
 
     def _print_block(self, block, tiempo, seq):
         tmp = datetime.datetime.utcfromtimestamp(int(tiempo)).strftime('%Y-%m-%d %H:%M:%S')
@@ -116,6 +122,9 @@ class SEQUENCE(object):
         if len(block) > 20:
             print("    '"+ block[20:].decode('utf-8').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
         print()
+
+commands_known = ["100", "102", "104", "106", "110", "123", "125", "131", "145"]
+command_list = []
 
 pcap = PCAP(sys.argv[1])
 if len(sys.argv) > 2:
@@ -184,7 +193,17 @@ while True:
                 print(f"    {contenido}")
             continue
         if paquete.src_port == 20008:
-            data_servidor_aspiradora.add_data(paquete)
+            data = data_servidor_aspiradora.add_data(paquete)
+            if (data is not None) and (len(data) > 0):
+                try:
+                    jsondata = json.loads(data)
+                    if 'value' in jsondata:
+                        if 'transitCmd' in jsondata['value']:
+                            command = jsondata['value']['transitCmd']
+                            if (command not in command_list) and (command not in commands_known):
+                                command_list.append(command)
+                except:
+                    pass
     if (paquete.dst == aspiradora and paquete.src == tablet):
         if paquete.src_port not in data_tablet_aspiradora:
             data_tablet_aspiradora[paquete.src_port] = SEQUENCE("t->a", paquete.src_port)
@@ -195,3 +214,5 @@ while True:
             data_aspiradora_tablet[paquete.dst_port] = SEQUENCE("a->t", paquete.dst_port)
             data_aspiradora_tablet[paquete.dst_port].set_timedif(time_first)
         data_aspiradora_tablet[paquete.dst_port].add_data(paquete)
+
+print(command_list)
