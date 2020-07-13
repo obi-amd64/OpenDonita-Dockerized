@@ -567,7 +567,7 @@ class RobotConnection(BaseServer):
         # PING
         if self._check_header(header, 0x14, 0x00c80100, 0x01,0x03e7):
             print("Pong")
-            self._send_packet(0xc80111, 0x01080001, header[3], 0x03e7)
+            self._send_packet(0x00c80111, 0x01080001, header[3], 0x03e7)
             return True
         # Identification
         if self._check_header(header, None, 0x0010, 0x0001, 0x00):
