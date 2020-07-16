@@ -83,6 +83,7 @@ def robot_action(server_object):
         action = uri[7:]
         pos = action.find('/')
         if pos == -1:
+            server_object.add_header("Content-Type", "application/json")
             server_object.send_answer('{"error":1, "value":"Missing robot ID"}', 400, "MISSING_ROBOT_ID")
             server_object.close()
             return
@@ -97,6 +98,7 @@ def robot_action(server_object):
                 robot = robotManager.get_robot(robotId)
                 error, answer = robot.send_command(action, server_object.get_params())
             else:
+                server_object.add_header("Content-Type", "application/json")
                 server_object.send_answer('{"error":2, "value":"Invalid robot ID"}', 400, "INVALID_ROBOT_ID")
                 server_object.close()
                 return
@@ -107,6 +109,7 @@ def robot_action(server_object):
         errcode = 400
     else:
         errcode = 200
+    server_object.add_header("Content-Type", "application/json")
     server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', errcode, "")
     server_object.close()
 
@@ -133,6 +136,18 @@ def robot_control(server_object):
         try:
             with open(path, "r") as page:
                 data = page.read()
+            if path.endswith(".js"):
+                mimetype = "application/javascript"
+            elif path.endswith(".html"):
+                mimetype = "text/html"
+            elif path.endswith(".svg"):
+                mimetype = "image/svg+xml"
+            elif path.endswith(".css"):
+                mimetype = "text/css"
+            else:
+                mimetype = None
+            if mimetype is not None:
+                server_object.add_header("Content-Type", mimetype)
             server_object.send_answer(data, 200, "OK")
         except:
             print("Error 401")
@@ -319,6 +334,7 @@ class HTTPConnection(BaseServer):
 
     def send_answer_json_close(self, data):
         result = '{"error":0, "value": '+json.dumps(data)+'}'
+        server_object.add_header("Content-Type", "application/json")
         self.send_answer(result.encode('utf8'), 200, 'OK')
         self.close()
 
@@ -492,7 +508,7 @@ class RobotConnection(BaseServer):
                 return 6, "Missing parameter (type)"
             if params['type'] == 'auto':
                 extraCommand = '"mode":"11"'
-            elif params['type'] == 'giro':
+            elif params['type'] == 'gyro':
                 extraCommand = '"mode":"1"'
             elif params['type'] == 'random':
                 extraCommand = '"mode":"3"'

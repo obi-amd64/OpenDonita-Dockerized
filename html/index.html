@@ -1,44 +1,69 @@
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Control de do&ntilde;ita</title>
-        <script type="text/javascript">
-            var xhttp = new XMLHttpRequest();
 
-			function command(uri, printData) {
-                xhttp.open("GET", uri, true);
-                xhttp.send();
-            }
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="conga.css" />
+    <title>Control de do&ntilde;ita</title>
+    <script src="jquery-3.5.1.min.js"></script>
+    <script src="code.js"></script>
+    <script type="text/javascript">
+        var xhttp = new XMLHttpRequest();
 
-            function handleResponse() {
-                let salida = document.getElementById('salida');
-                salida.innerHTML = xhttp.responseText;
-            }
-            xhttp.addEventListener('load', handleResponse);
-		</script>
-    </head>
-    <body>
-        <h1>OpenDoñita</h1>
-        <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
-        <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
-        <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
-        <p><input type="button" value="Sonido ON" onclick="command('/robot/all/sound?status=1');"></p>
-        <p><input type="button" value="Sonido OFF" onclick="command('/robot/all/sound?status=0');"></p>
-        <p><input type="button" value="FAN 0" onclick="command('robot/all/fan?speed=0');"></p>
-        <p><input type="button" value="FAN 1" onclick="command('robot/all/fan?speed=1');"></p>
-        <p><input type="button" value="FAN 2" onclick="command('robot/all/fan?speed=2');"></p>
-        <p><input type="button" value="FAN 3" onclick="command('robot/all/fan?speed=3');"></p>
-        <p><input type="button" value="WATERTANK 0" onclick="command('robot/all/watertank?speed=0');"></p>
-        <p><input type="button" value="WATERTANK 1" onclick="command('robot/all/watertank?speed=1');"></p>
-        <p><input type="button" value="WATERTANK 2" onclick="command('robot/all/watertank?speed=2');"></p>
-        <p><input type="button" value="WATERTANK 3" onclick="command('robot/all/watertank?speed=3');"></p>
-        <p><input type="button" value="Mode AUTO" onclick="command('robot/all/mode?type=auto');"></p>
-        <p><input type="button" value="UpdateMap" onclick="command('robot/all/updatemap');"></p>
-        <p><input type="button" value="Robots" onclick="command('/robot/list');"></p>
-        <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
-        <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>
-        <p><input type="button" value="notificar" onclick="command('robot/all/notifyconnection');"></p>
-        <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askstatus');"></p>
-        <p id="salida"></p>
-    </body>
+        function command(uri, printData) {
+            xhttp.open("GET", uri, tdue);
+            xhttp.send();
+        }
+
+        function handleResponse() {
+            let salida = document.getElementById('salida');
+            salida.innerHTML = xhttp.responseText;
+        }
+        xhttp.addEventListener('load', handleResponse);
+    </script>
+</head>
+
+<body>
+    <h1>OpenDoñita</h1>
+    <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
+    <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
+    <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
+    <p><input type="button" value="UpdateMap" onclick="command('robot/all/updatemap');"></p>
+    <p><input type="button" value="Robots" onclick="command('/robot/list');"></p>
+    <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
+    <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>
+    <p><input type="button" value="notificar" onclick="command('robot/all/notifyconnection');"></p>
+    <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askstatus');"></p>
+    <p id="salida"></p>
+    <div id="div_settings">
+        <table id="table_settings">
+            <tr>
+                <td id="fan_0"><img id="pic_fan_0" src="fan_0.svg"></td>
+                <td id="fan_1"><img id="pic_fan_1" src="fan_1.svg"></td>
+                <td id="fan_2"><img id="pic_fan_2" src="fan_2.svg"></td>
+                <td id="fan_3"><img id="pic_fan_3" src="fan_3.svg"></td>
+            </tr>
+            <tr><td class="separator"></td><td class="separator"></td><td class="separator"></td><td class="separator"></td></tr>
+            <tr>
+                <td id="water_0"><img id="pic_water_0" src="water_0.svg"></td>
+                <td id="water_1"><img id="pic_water_1" src="water_1.svg"></td>
+                <td id="water_2"><img id="pic_water_2" src="water_2.svg"></td>
+                <td id="water_3"><img id="pic_water_3" src="water_3.svg"></td>
+            </tr>
+            <tr><td class="separator"></td><td class="separator"></td><td class="separator"></td><td class="separator"></td></tr>
+            <tr>
+                <td id="mode_0"><img id="pic_mode_0" src="mode_auto.svg"></td>
+                <td id="mode_1"><img id="pic_mode_1" src="mode_gyro.svg"></td>
+                <td id="mode_2"><img id="pic_mode_2" src="mode_random.svg"></td>
+                <td id="mode_3"><img id="pic_mode_3" src="mode_edge.svg"></td>
+            </tr>
+            <tr>
+                <td id="mode_4"><img id="pic_mode_4" src="mode_area.svg"></td>
+                <td id="mode_5"><img id="pic_mode_5" src="mode_deep.svg"></td>
+                <td id="mode_6"><img id="pic_mode_6" src="mode_scrubbing.svg"></td>
+                <td id="audio"><img id="pic_audio" src="speaker_disabled.svg"></td>
+            </tr>
+        </table>
+    </div>
+</body>
+
 </html>

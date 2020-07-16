@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="water_3.svg"
+   viewBox="0 0 61.052185 71.514603"
+   height="71.514603"
+   width="61.052185"
+   id="svg1532"
+   version="1.1">
+  <metadata
+     id="metadata1538">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs1536" />
+  <sodipodi:namedview
+     inkscape:current-layer="g1540"
+     inkscape:window-maximized="1"
+     inkscape:window-y="0"
+     inkscape:window-x="0"
+     inkscape:cy="37.440159"
+     inkscape:cx="7.1860836"
+     inkscape:zoom="8.7907514"
+     fit-margin-bottom="10"
+     fit-margin-right="10"
+     fit-margin-left="10"
+     fit-margin-top="10"
+     showgrid="false"
+     id="namedview1534"
+     inkscape:window-height="1016"
+     inkscape:window-width="1920"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     inkscape:document-rotation="0"
+     lock-margins="true" />
+  <g
+     transform="translate(-328.87614,-729.12765)"
+     id="g1540"
+     inkscape:label="Image"
+     inkscape:groupmode="layer">
+    <path
+       sodipodi:nodetypes="czc"
+       id="path1548"
+       d="m 359.52975,740.21161 c 5.04855,3.82581 41.21618,49.98227 0,49.5317 -41.21617,-0.45058 -6.09613,-45.78232 0,-49.5317 z"
+       style="fill:#663399;fill-opacity:1;stroke:#663399;stroke-width:1.79145px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       sodipodi:nodetypes="czc"
+       id="path1550"
+       d="m 359.65551,749.42559 c 0,0 15.73868,20.82312 10.60486,28.09387 -5.13382,7.27077 -11.06479,4.81623 -11.06479,4.81623"
+       style="fill:none;stroke:#ffffff;stroke-width:5.85678;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  </g>
+</svg>
