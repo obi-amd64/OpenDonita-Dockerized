@@ -1,12 +1,82 @@
+@media (min-aspect-ratio: 1) {
+    #main_vertical {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        width: 20%;
+        margin: 0px;
+        border: 0px;
+        padding: 0px;
+        background-color: blanchedalmond;
+        visibility: visible;
+    }
+
+    #main_horizontal {
+        visibility: hidden;
+    }
+
+    #map {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        left: 20%;
+        margin: 0px;
+        border: 0px;
+        padding: 0px;
+        background-color: #00ff00;
+    }
+}
+
+@media (max-aspect-ratio: 1) {
+    #main_horizontal {
+        position: absolute;
+        bottom: 0px;
+        height: 20%;
+        left: 0px;
+        right: 0px;
+        margin: 0px;
+        border: 0px;
+        padding: 0px;
+        visibility: visible;
+        background-color: blanchedalmond;
+    }
+
+    #main_vertical {
+        visibility: hidden;
+    }
+
+    #map {
+        position: absolute;
+        top: 0px;
+        bottom: 20%;
+        right: 0px;
+        left: 0px;
+        margin: 0px;
+        border: 0px;
+        padding: 0px;
+        background-color: #00ff00;
+    }
+
+}
+
 body {
     font-size: 50px;
     width: 100%;
 }
 
+
+
 #div_settings {
+    position: absolute;
     margin: 0px;
     border: 0px;
     padding: 0px;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
 }
 
 #table_settings, td {
@@ -16,6 +86,7 @@ body {
     padding: 0px;
     margin-left: auto;
     margin-right: auto;
+    background-color: #ffffff;
 }
 
 #table_settings {
@@ -38,4 +109,52 @@ td.separator {
 #audio {
     border: 2px solid black !important;
     margin: 2px;
+}
+
+#settings_row1, #settings_row2 {
+    border-bottom: 3px solid black;
+}
+
+div.battery {
+    background-color: #fff;
+    border: 2px solid #000;
+}
+
+div.batteryv {
+    top: 2%;
+    height: 5%;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    width: 50%;
+}
+
+div.batteryh {
+    top: 70%;
+    height: 15%;
+    left: 5%;
+    position: relative;
+    width: 20%;
+}
+
+div.battery:after {
+    background-color: inherit;
+    border: inherit;
+    content: "";
+    display: block;
+    bottom: 25%;
+    position: absolute;
+    right: -4%;
+    top: 25%;
+    width: 2%;
+}
+
+div.battery-level {
+    background-color: #000;
+    height: 100%;
+    width: 5%;
+}
+
+img.charging {
+    height: 100%;
 }

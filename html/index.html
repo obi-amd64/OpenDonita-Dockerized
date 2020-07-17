@@ -23,7 +23,7 @@
 </head>
 
 <body>
-    <h1>OpenDoñita</h1>
+    <!-- <h1>OpenDoñita</h1>
     <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
     <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
     <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
@@ -32,35 +32,39 @@
     <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
     <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>
     <p><input type="button" value="notificar" onclick="command('robot/all/notifyconnection');"></p>
-    <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askstatus');"></p>
-    <p id="salida"></p>
+    <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askstatus');"></p> -->
+    <div id="main_vertical">
+        <div class="battery batteryv"><div class="battery-level"><img class="charging" src="charging.svg"></div></div>
+    </div>
+    <div id="main_horizontal">
+        <div class="battery batteryh"><div class="battery-level"><img class="charging" src="charging.svg"></div></div>
+    </div>
+    <div id="map"></div>
     <div id="div_settings">
         <table id="table_settings">
-            <tr>
+            <tr id="settings_row1">
                 <td id="fan_0"><img id="pic_fan_0" src="fan_0.svg"></td>
                 <td id="fan_1"><img id="pic_fan_1" src="fan_1.svg"></td>
                 <td id="fan_2"><img id="pic_fan_2" src="fan_2.svg"></td>
                 <td id="fan_3"><img id="pic_fan_3" src="fan_3.svg"></td>
             </tr>
-            <tr><td class="separator"></td><td class="separator"></td><td class="separator"></td><td class="separator"></td></tr>
-            <tr>
+            <tr id="settings_row2">
                 <td id="water_0"><img id="pic_water_0" src="water_0.svg"></td>
                 <td id="water_1"><img id="pic_water_1" src="water_1.svg"></td>
                 <td id="water_2"><img id="pic_water_2" src="water_2.svg"></td>
                 <td id="water_3"><img id="pic_water_3" src="water_3.svg"></td>
             </tr>
-            <tr><td class="separator"></td><td class="separator"></td><td class="separator"></td><td class="separator"></td></tr>
-            <tr>
+            <tr id="settings_row3">
                 <td id="mode_0"><img id="pic_mode_0" src="mode_auto.svg"></td>
                 <td id="mode_1"><img id="pic_mode_1" src="mode_gyro.svg"></td>
                 <td id="mode_2"><img id="pic_mode_2" src="mode_random.svg"></td>
                 <td id="mode_3"><img id="pic_mode_3" src="mode_edge.svg"></td>
             </tr>
-            <tr>
+            <tr id="settings_row4">
                 <td id="mode_4"><img id="pic_mode_4" src="mode_area.svg"></td>
                 <td id="mode_5"><img id="pic_mode_5" src="mode_deep.svg"></td>
                 <td id="mode_6"><img id="pic_mode_6" src="mode_scrubbing.svg"></td>
-                <td id="audio"><img id="pic_audio" src="speaker_disabled.svg"></td>
+                <td id="back"><img id="pic_back" src="goback.svg"></td>
             </tr>
         </table>
     </div>

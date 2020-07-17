@@ -7,13 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="water_0.svg"
-   viewBox="0 0 61.052185 71.514603"
-   height="71.514603"
-   width="61.052185"
+   version="1.1"
    id="svg1532"
-   version="1.1">
+   width="61.052185"
+   height="71.514603"
+   viewBox="0 0 61.052185 71.514603"
+   sodipodi:docname="water_0.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <metadata
      id="metadata1538">
     <rdf:RDF>
@@ -29,53 +29,40 @@
   <defs
      id="defs1536" />
   <sodipodi:namedview
-     inkscape:current-layer="g1540"
-     inkscape:window-maximized="1"
-     inkscape:window-y="0"
-     inkscape:window-x="0"
-     inkscape:cy="38.463962"
-     inkscape:cx="8.2098869"
-     inkscape:zoom="8.7907514"
-     fit-margin-bottom="10"
-     fit-margin-right="10"
-     fit-margin-left="10"
-     fit-margin-top="10"
-     showgrid="false"
-     id="namedview1534"
-     inkscape:window-height="1016"
-     inkscape:window-width="1920"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
-     bordercolor="#666666"
-     pagecolor="#ffffff"
+     lock-margins="true"
      inkscape:document-rotation="0"
-     lock-margins="true" />
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview1534"
+     showgrid="false"
+     fit-margin-top="10"
+     fit-margin-left="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10"
+     inkscape:zoom="8.7907514"
+     inkscape:cx="8.2098869"
+     inkscape:cy="38.463962"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1540" />
   <g
-     transform="translate(-328.87614,-729.12765)"
-     id="g1540"
+     inkscape:groupmode="layer"
      inkscape:label="Image"
-     inkscape:groupmode="layer">
+     id="g1540"
+     transform="translate(-328.87614,-729.12765)">
     <path
-       sodipodi:nodetypes="czc"
-       id="path1548"
+       style="fill:none;fill-opacity:1;stroke:#663399;stroke-width:1.79145px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 359.64351,740.21161 c 5.04855,3.82581 41.21618,49.98227 0,49.5317 -41.21617,-0.45058 -6.09613,-45.78232 0,-49.5317 z"
-       style="fill:none;fill-opacity:1;stroke:#663399;stroke-width:1.79145px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    <path
-       sodipodi:nodetypes="czc"
-       id="path1550"
-       d="m 359.65551,749.42559 c 0,0 15.73868,20.82312 10.60486,28.09387 -5.13382,7.27077 -11.06479,4.81623 -11.06479,4.81623"
-       style="fill:none;stroke:#ffffff;stroke-width:5.85678;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       style="fill:none;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 385.59724,734.41686 -51.49011,61.26378"
-       id="path867" />
-    <path
-       id="path867-3"
-       d="m 334.10712,734.41686 51.49012,61.26378"
-       style="fill:none;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+       id="path1548"
+       sodipodi:nodetypes="czc" />
   </g>
 </svg>

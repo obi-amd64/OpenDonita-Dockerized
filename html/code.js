@@ -8,9 +8,11 @@ class PowerWater {
         this._water = 0;
         this._mode = 0;
         this._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"];
+
         $(window).resize(function() {
-            this._set_table_size();
+            this._set_sizes();
         }.bind(this));
+
         for(let x=0; x<4; x++) {
             let name = `#fan_${x}`;
             $(name).click(function() {
@@ -27,55 +29,41 @@ class PowerWater {
                 this._set_mode(x, true);
             }.bind(this));
         }
-        $("#audio").click(function () {
+        /*$("#audio").click(function () {
             this._audio_enabled = !this._audio_enabled;
             this._set_audio(true);
-        }.bind(this));
-        this._set_table_size();
-        this._set_water(this._water, false);
-        this._set_fan(this._fan, false);
-        this._set_mode(this._mode, false);
-        this._set_audio(false);
+        }.bind(this));*/
+        $("#back").click(function () {
+            $("#div_settings").hide();
+        });
+        this._set_sizes();
     }
 
-    _set_table_size() {
-        let w = window.innerWidth * 0.9;
-        let h = window.innerHeight * 0.9;
-        $("#div_settings").width(w);
-        $("#div_settings").height(h);
-        if (w > h) {
-            w = h;
-        } else {
-            h = w;
+    _set_sizes() {
+        let width = $("#div_settings").width();
+        let height = $("#div_settings").height();
+        let minimum = width;
+        if (width > height) {
+            minimum = height;
         }
-        w /= 4;
-        w = w * 0.95
+
+        let w = minimum / 4;
+        w = w * 0.97
         for(let x=0; x<4; x++) {
-            let name = `#fan_${x}`;
-            $(name).width(w);
-            $(name).height(w);
-            name = `#pic_fan_${x}`;
-            $(name).width(w);
-            $(name).height(w);
-            name = `#water_${x}`;
-            $(name).width(w);
-            $(name).height(w);
-            name = `#pic_water_${x}`;
-            $(name).width(w);
-            $(name).height(w);
+            this._set_block_size(`fan_${x}`, w, w);
+            this._set_block_size(`water_${x}`, w, w);
         }
         for(let x=0; x<7; x++) {
-            name = `#mode_${x}`;
-            $(name).width(w);
-            $(name).height(w);
-            name = `#pic_mode_${x}`;
-            $(name).width(w);
-            $(name).height(w);
+            this._set_block_size(`mode_${x}`, w, w);
         }
-        $("#audio").width(w);
-        $("#audio").height(w);
-        $("#pic_audio").width(w);
-        $("#pic_audio").height(w);
+        this._set_block_size(`back`, w, w);
+    }
+
+    _set_block_size(name, w, h) {
+        $(`#${name}`).width(w);
+        $(`#${name}`).height(h);
+        $(`#pic_${name}`).width(w);
+        $(`#pic_${name}`).height(h);
     }
 
     _set_audio(update) {
