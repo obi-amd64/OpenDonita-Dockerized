@@ -28,9 +28,28 @@ import random
 import traceback
 import signal
 import os
+import configparser
+
+configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
+try:
+    os.makedirs(configPath)
+except:
+    pass
 
 robot_data = {}
 html_path = "html"
+
+# Errors:
+#
+# 0: No error
+# 1: Missing robot ID
+# 2: Invalid robot ID
+# 3: Robot is not connected to the server
+# 4: Robot still not identified in server
+# 5: Unknown command
+# 6: Missing parameter
+# 7: Invalid value (out of range, or similar)
+# 8: Key doesn't exist in persistent data
 
 def robot_clear_time(server_object):
     server_object.convert_data()
@@ -122,7 +141,7 @@ def robot_list(server_object):
     server_object.send_answer_json_close(data)
 
 
-def robot_control(server_object):
+def html_server(server_object):
     global html_path
 
     path = server_object.get_path()
@@ -163,7 +182,7 @@ registered_pages = {
     '/baole-web/common/*': robot_global,
     '/robot/list': robot_list,
     '/robot/*': robot_action,
-    '/*': robot_control
+    '/*': html_server
 }
 
 
@@ -192,7 +211,7 @@ class RobotManager(object):
 
     def get_robot(self, deviceId):
         if deviceId not in self._robots:
-            self._robots[deviceId] = Robot()
+            self._robots[deviceId] = Robot(deviceId)
         return self._robots[deviceId]
 
     def get_robot_list(self):
@@ -678,8 +697,19 @@ class RobotConnection(BaseServer):
 
 class Robot(object):
     """ Manages each physical robot """
-    def __init__(self):
+    def __init__(self, identifier):
+        global configPath
+
         super().__init__()
+
+        self._persistentData = configparser.ConfigParser()
+        self._configFile = os.path.join(configPath, f"data_{identifier}.ini")
+        if os.path.exists(self._configFile):
+            self._persistentData.read(self._configFile)
+        if identifier not in self._persistentData:
+            self._persistentData[identifier] = {}
+
+        self._identifier = identifier
         self._connection = None
         self._notecmdValues = {}
         self._notecmdKeys = ['workState','workMode','fan','direction','brush','battery','voice','error','standbyMode',
@@ -713,9 +743,7 @@ class Robot(object):
             return 3, '"Not connected"'
 
         if command == 'setStatus':
-            print(params)
             for key in params:
-                print(key)
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = params[key]
@@ -723,6 +751,23 @@ class Robot(object):
 
         if command == 'getStatus':
             return 0, self.get_status()
+
+        if command == 'getProperty':
+            if 'key' not in params:
+                return 6, '"Missing parameter (key)"'
+            if params['key'] not in self._persistentData[self._identifier]:
+                return 8, f'"Key {params["key"]} does not exist in persistent data"'
+            return 0, json.dumps({params["key"]: self._persistentData[self._identifier][params["key"]]})
+
+        if command == 'setProperty':
+            if 'key' not in params:
+                return 6, '"Missing parameter (key)"'
+            if 'value' not in params:
+                return 6, '"Missing parameter (value)"'
+            self._persistentData[self._identifier][params['key']] = str(params['value'])
+            with open(self._configFile, 'w') as configfile:
+                self._persistentData.write(configfile)
+            return 0, '"OK"'
 
         return self._connection.send_command(command, params)
 
