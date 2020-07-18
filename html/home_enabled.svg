@@ -7,41 +7,41 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   height="21.427837"
-   width="24.370398"
-   sodipodi:docname="home_enabled.svg"
+   version="1.1"
+   viewBox="0 0 200 200"
    id="svg887"
-   viewBox="0 0 24.370397 21.427837"
-   version="1.1">
+   sodipodi:docname="home_enabled.svg"
+   width="200"
+   height="200"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <defs
      id="defs891" />
   <sodipodi:namedview
-     lock-margins="true"
-     inkscape:current-layer="svg887"
-     inkscape:window-maximized="1"
-     inkscape:window-y="0"
-     inkscape:window-x="0"
-     inkscape:cy="9.7139847"
-     inkscape:cx="-0.85574797"
-     inkscape:zoom="22.892582"
-     fit-margin-bottom="3"
-     fit-margin-right="3"
-     fit-margin-left="3"
-     fit-margin-top="3"
-     showgrid="false"
-     id="namedview889"
-     inkscape:window-height="1016"
-     inkscape:window-width="1920"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
-     bordercolor="#666666"
+     inkscape:document-rotation="0"
      pagecolor="#ffffff"
-     inkscape:document-rotation="0" />
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview889"
+     showgrid="false"
+     fit-margin-top="3"
+     fit-margin-left="3"
+     fit-margin-right="3"
+     fit-margin-bottom="3"
+     inkscape:zoom="3.885"
+     inkscape:cx="100"
+     inkscape:cy="100"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg887"
+     lock-margins="true" />
   <title
      id="title881">Home</title>
   <metadata
@@ -89,8 +89,8 @@
     </rdf:RDF>
   </metadata>
   <path
-     sodipodi:nodetypes="cccccccccccc"
+     style="fill:#663399;stroke:#663399;stroke-width:9.85856px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+     d="m 99.9416,30.468733 78.86847,80.951897 h -29.57568 v 59.15136 H 116.37252 V 130.39633 H 83.510661 v 40.17566 H 50.648792 V 111.42063 H 21.073109 Z"
      id="path1554"
-     d="m 12.185199,3.7165072 7.999999,8.2113298 h -3 v 6 h -3.333333 v -4.075206 h -3.333333 v 4.075206 H 7.1851988 v -6 h -3 z"
-     style="fill:#663399;stroke:#663399;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1" />
+     sodipodi:nodetypes="cccccccccccc" />
 </svg>

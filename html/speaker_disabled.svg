@@ -9,11 +9,11 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg3943"
    sodipodi:docname="speaker_disabled.svg"
-   viewBox="0 0 310.9118 323.35793"
+   viewBox="0 0 200 200.00001"
    version="1.1"
    inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   width="310.9118"
-   height="323.35791">
+   width="200"
+   height="200">
   <defs
      id="defs3573" />
   <sodipodi:namedview
@@ -25,14 +25,14 @@
      pagecolor="#ffffff"
      fit-margin-top="30"
      inkscape:window-maximized="1"
-     inkscape:zoom="1"
+     inkscape:zoom="3.885"
      inkscape:window-x="0"
      inkscape:window-height="1016"
      showgrid="false"
      borderopacity="1.0"
      inkscape:current-layer="layer1"
-     inkscape:cx="224.99789"
-     inkscape:cy="-52.230318"
+     inkscape:cx="100"
+     inkscape:cy="100"
      fit-margin-right="30"
      fit-margin-bottom="30"
      inkscape:window-width="1920"
@@ -47,7 +47,7 @@
      transform="translate(-219.54293,-322.54225)">
     <path
        sodipodi:nodetypes="ccccccc"
-       d="m 349.90688,358.61331 -70.56823,87.81921 h -29.79572 v 75.27327 h 29.79572 L 349.90688,609.525 V 358.61817"
+       d="m 265.43701,400.49827 h -16.9058 v 42.70932 h 16.9058 l 40.03973,49.82777 V 352.93222 Z"
        inkscape:connector-curvature="0"
        style="fill:none;fill-opacity:1;stroke:#663399;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="speaker" />
