@@ -48,7 +48,7 @@ class PowerWater {
         }
 
         let w = minimum / 4;
-        w = w * 0.97
+        w = w * 0.95
         for(let x=0; x<4; x++) {
             this._set_block_size(`fan_${x}`, w, w);
             this._set_block_size(`water_${x}`, w, w);

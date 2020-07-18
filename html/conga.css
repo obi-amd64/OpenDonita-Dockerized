@@ -1,4 +1,4 @@
-@media (min-aspect-ratio: 1) {
+@media screen and (min-aspect-ratio: 1/1) {
     #main_vertical {
         position: absolute;
         top: 0px;
@@ -29,7 +29,7 @@
     }
 }
 
-@media (max-aspect-ratio: 1) {
+@media screen and (max-aspect-ratio: 1/1) {
     #main_horizontal {
         position: absolute;
         bottom: 0px;
@@ -98,13 +98,6 @@ td.powerwater_active {
     background-color: #00ffff;
 }
 
-td.separator {
-    background-color: #000000;
-    height: 4px;
-    border: 0px;
-    margin: 0px;
-    padding: 0px;
-}
 
 #audio {
     border: 2px solid black !important;
@@ -112,7 +105,12 @@ td.separator {
 }
 
 #settings_row1, #settings_row2 {
-    border-bottom: 3px solid black;
+    border-bottom: 7px solid black;
+}
+
+#pic_back {
+    border-top: 7px solid black;
+    border-left: 7px solid black;
 }
 
 div.battery {
