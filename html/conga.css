@@ -1,5 +1,5 @@
 @media screen and (min-aspect-ratio: 1/1) {
-    #main_vertical {
+    #main {
         position: absolute;
         top: 0px;
         bottom: 0px;
@@ -10,10 +10,6 @@
         padding: 0px;
         background-color: blanchedalmond;
         visibility: visible;
-    }
-
-    #main_horizontal {
-        visibility: hidden;
     }
 
     #map {
@@ -27,10 +23,50 @@
         padding: 0px;
         background-color: #00ff00;
     }
+
+    div.battery_body {
+        top: 2%;
+        height: 5%;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        width: 50%;
+    }
+
+    div.battery_top {
+        width: 0px;
+        height: 0px;
+        visibility: hidden;
+    }
+
+    img.charging {
+        height: 100%;
+        top: 0px;
+        left: 30%;
+        position: absolute;
+    }
+
+    div.battery_level {
+        background-color: #000;
+        height: 100%;
+        width: 5%;
+    }
+
+    div.battery:after {
+        background-color: inherit;
+        border: inherit;
+        content: "";
+        display: block;
+        bottom: 25%;
+        position: absolute;
+        right: -4%;
+        top: 25%;
+        width: 2%;
+    }
 }
 
 @media screen and (max-aspect-ratio: 1/1) {
-    #main_horizontal {
+    #main {
         position: absolute;
         bottom: 0px;
         height: 20%;
@@ -41,10 +77,6 @@
         padding: 0px;
         visibility: visible;
         background-color: blanchedalmond;
-    }
-
-    #main_vertical {
-        visibility: hidden;
     }
 
     #map {
@@ -59,10 +91,44 @@
         background-color: #00ff00;
     }
 
+    div.battery_top {
+        top: 20%;
+        left: 7%;
+        width: 4%;
+        height: 3%;
+        position: relative;
+        visibility: visible;
+    }
+
+    div.battery_body {
+        top: 20%;
+        left: 5%;
+        width: 8%;
+        height: 50%;
+        position: relative;
+    }
+
+    img.charging {
+        width: 100%;
+        position: relative;
+        top: 20%;
+    }
+
+    div.battery_level {
+        background-color: #000;
+        height: 55%;
+        width: 100%;
+        bottom: 0%;
+        position: absolute;
+    }
+
+    div.battery:after {
+        visibility: hidden;
+    }
 }
 
 body {
-    font-size: 50px;
+    font-size: 25px;
     width: 100%;
 }
 
@@ -113,46 +179,7 @@ td.powerwater_active {
     border-left: 7px solid black;
 }
 
-div.battery {
+div.battery_common {
     background-color: #fff;
     border: 2px solid #000;
-}
-
-div.batteryv {
-    top: 2%;
-    height: 5%;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
-    width: 50%;
-}
-
-div.batteryh {
-    top: 70%;
-    height: 15%;
-    left: 5%;
-    position: relative;
-    width: 20%;
-}
-
-div.battery:after {
-    background-color: inherit;
-    border: inherit;
-    content: "";
-    display: block;
-    bottom: 25%;
-    position: absolute;
-    right: -4%;
-    top: 25%;
-    width: 2%;
-}
-
-div.battery-level {
-    background-color: #000;
-    height: 100%;
-    width: 5%;
-}
-
-img.charging {
-    height: 100%;
 }
