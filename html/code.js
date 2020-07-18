@@ -8,7 +8,11 @@ class PowerWater {
         this._values['fan'] = 2;
         this._values['water'] = 0;
         this._values['mode'] = 0;
+        this._allowHome = false;
+        this._allowStart = false;
+        this._allowStop = false;
         this._audio = true;
+        this._counter = 0;
         this._robot = "all";
         this._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"];
 
@@ -34,8 +38,13 @@ class PowerWater {
         }
 
         $("#audio").click(function () {
-            this._audio = !this._audio;
-            this._set_audio(true);
+            let status;
+            if (this._audio) {
+                status = 0;
+            } else {
+                status = 1;
+            }
+            $.getJSON(`robot/all/sound?status=${status}`);
         }.bind(this));
 
         $("#back").click(function () {
@@ -47,9 +56,25 @@ class PowerWater {
         });
         $("#div_settings").hide();
 
+        $("#home").click(function () {
+            if (this._allowHome) {
+                $.getJSON(`robot/${this._robot}/return`);
+            }
+        }.bind(this));
+
+        $("#startstop").click(function () {
+            if (this._allowStart) {
+                this._read_defaults(true);
+                $.getJSON(`robot/${this._robot}/clean`);
+            } else if (this._allowStop) {
+                $.getJSON(`robot/${this._robot}/stop`);
+            }
+        }.bind(this));
         this._set_sizes();
-        this._read_defaults();
+        this._read_defaults(false);
         this._update_status();
+        $.getJSON(`robot/${this._robot}/notifyConnection`);
+        setInterval(this._update_status.bind(this), 1000);
     }
 
     _store_value(name, value) {
@@ -68,32 +93,83 @@ class PowerWater {
         }.bind(this));
     }
 
-    _read_defaults() {
+    _read_defaults(update) {
         this._read_value('fan', function(value) {
-            this._set_fan(value, false);
+            this._set_fan(value, update);
         }.bind(this));
 
         this._read_value('water', function(value) {
-            this._set_water(value, false);
+            this._set_water(value, update);
         }.bind(this));
 
         this._read_value('mode', function(value) {
-            this._set_mode(value, false);
+            this._set_mode(value, update);
         }.bind(this));
     }
 
     _update_status() {
         $.getJSON(`robot/${this._robot}/getStatus`).done(function (received) {
-            console.log(received);
             if (received['error'] != 0) {
                 return;
             }
+            // audio enabled/disabled
             if (received['value']['voice'] == "2") {
                 this._audio = true;
             } else {
                 this._audio = false;
             }
             this._set_audio(false);
+
+            // mode
+            let mode = received['value']['workState'];
+            if ((mode == 4) || (mode == 5) || (mode == 6)) {
+                this._allowHome = false;
+                $("#home").attr("src", "home_disabled.svg");
+            } else {
+                this._allowHome = true;
+                $("#home").attr("src", "home_enabled.svg");
+            }
+            if ((mode == 2) || (mode == 5) || (mode == 6)) {
+                this._allowStart = true;
+            } else {
+                this._allowStart = false;
+            }
+            if (mode == 1) {
+                this._allowStop = true;
+            } else {
+                this._allowStop = false;
+            }
+            if (this._allowStart) {
+                $("#startstop").attr("src", "play_enabled.svg");
+            } else {
+                if (this._allowStop) {
+                    $("#startstop").attr("src", "stop_enabled.svg");
+                } else {
+                    $("#startstop").attr("src", "play_disabled.svg");
+                }
+            }
+            if (mode == 5) {
+                $("#charging").show();
+            } else {
+                $("#charging").hide();
+            }
+            let bat_level = received['value']['battery'];
+            let aspect = $('#battery').width() / $('#battery_level').height();
+            if (aspect > 1.0) {
+                $("#battery_level").css("width", `${bat_level}%`);
+                $("#battery_level").css("height", "100%");
+            } else {
+                $("#battery_level").css("height", `${bat_level}%`);
+                $("#battery_level").css("width", "100%");
+            }
+            if ((mode == 1) || (mode == 4)) {
+                this._counter++;
+                if (this._counter >= 5) {
+                    // Update map each 5 seconds
+                    $.getJSON(`robot/${this._robot}/updateMap`);
+                    this._counter = 0;
+                }
+            }
         }.bind(this));
     }
 
@@ -128,10 +204,8 @@ class PowerWater {
         let status;
         if (this._audio) {
             $("#audio").attr("src", "speaker_enabled.svg");
-            status = "1";
         } else {
             $("#audio").attr("src", "speaker_disabled.svg");
-            status = "0";
         }
         if (update) {
             $.getJSON(`robot/all/sound?status=${status}`);
