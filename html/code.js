@@ -15,8 +15,12 @@ class PowerWater {
         this._counter = 0;
         this._robot = "all";
         this._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"];
+        this._last_map = "";
+        this._last_track = "";
 
         $(window).resize(function() {
+            this._last_map = "";
+            this._last_track = "";
             this._set_sizes();
         }.bind(this));
 
@@ -170,6 +174,7 @@ class PowerWater {
                     this._counter = 0;
                 }
             }
+            this._update_map(received);
         }.bind(this));
     }
 
@@ -191,6 +196,133 @@ class PowerWater {
             this._set_block_size(`mode_${x}`, w, w);
         }
         this._set_block_size(`back`, w, w);
+
+        let canvas = document.getElementById("mapcanvas");
+        canvas.width = $("#map").width();
+        canvas.height = $("#map").height();
+    }
+
+    _update_map(data) {
+        if ((this._last_map == data['value']['map']) && (this._last_track == data['value']['track'])) {
+            return;
+        }
+        this._last_map = data['value']['map'];
+        this._last_track = data['value']['track'];
+        let track = Uint8Array.from(atob(data['value']['track']).substring(4), c => c.charCodeAt(0))
+        let map =  Uint8Array.from(atob(data['value']['map']), c => c.charCodeAt(0))
+        let mapw = map[5] * 256 + map[6];
+        let maph = map[7] * 256 + map[8];
+        let pixels = [];
+        let pos = 9;
+        let repetitions = 0;
+
+        let chargerPos = data['value']['chargerPos'].split(",");
+        let chargerX = parseInt(chargerPos[0]);
+        let chargerY = parseInt(chargerPos[1]);
+
+        let minx = chargerX;
+        let maxx = chargerX;
+        let miny = chargerY;
+        let maxy = chargerY;
+        let index = 0;
+
+        while(pos < map.length) {
+            if ((map[pos] & 0xc0) == 0xc0) {
+                repetitions *= 64;
+                repetitions += map[pos] & 0x3F;
+                pos++;
+                continue;
+            }
+            if (repetitions == 0) {
+                repetitions = 1;
+            }
+            let value = map[pos];
+            pos++;
+            for(let a=0; a<repetitions; a++) {
+                let mul = 64;
+                for(let b=0; b<4; b++) {
+                    let v = (value/mul) & 0x03;
+                    pixels.push(v);
+                    mul /= 4;
+                    if (v == 0) {
+                        index++;
+                        continue;
+                    }
+                    let x = index % mapw;
+                    let y = Math.floor(index / mapw);
+                    index++;
+                    if (x < minx) {
+                        minx = x;
+                    }
+                    if (y < miny) {
+                        miny = y;
+                    }
+                    if (x > maxx) {
+                        maxx = x;
+                    }
+                    if (y > maxy) {
+                        maxy = y;
+                    }
+                }
+            }
+            repetitions = 0;
+        }
+        pos = minx + miny * mapw;
+        var c = document.getElementById("mapcanvas");
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, c.width, c.height);
+        if (minx > maxx) {
+            return;
+        }
+
+        let radius1 = c.width / (maxx - minx + 1);
+        let radius2 = c.height / (maxy - miny + 1);
+        if (radius2 < radius1) {
+            radius1 = radius2;
+        }
+        radius2 = radius1 / 2;
+        let radius3 = radius2 * 0.8;
+
+        for(let y = miny; y <= maxy; y++) {
+            for(let x = minx; x <= maxx; x++) {
+                let pos = x + mapw * y;
+                if (pixels[pos] == 0) {
+                    pos++;
+                    continue;
+                }
+                switch (pixels[pos]) {
+                    case 1:
+                        ctx.fillStyle = '#0000ff';
+                        break;
+                    case 2:
+                        ctx.fillStyle = '#ff0000';
+                        break;
+                }
+                ctx.beginPath();
+                ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
+                ctx.fill();
+                pos++;
+            }
+        }
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc((chargerX - minx)*radius1 + radius2, (chargerY - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = radius3 / 2;
+        let first = true;
+        for(let a=0; a < track.length; a += 2) {
+            let x = track[a];
+            let y = track[a + 1];
+            if (first) {
+                ctx.moveTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+                first = false;
+                continue;
+            }
+            ctx.lineTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+        }
+        ctx.stroke();
     }
 
     _set_block_size(name, w, h) {
