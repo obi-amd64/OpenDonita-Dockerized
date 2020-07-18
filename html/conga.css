@@ -63,6 +63,25 @@
         top: 25%;
         width: 2%;
     }
+
+    div.buttons {
+        margin-top: 15%;
+        margin-left: auto;
+        margin-right: auto;
+        width: 40%;
+        height: 80%;
+        background-color: lavender;
+    }
+
+    span.button {
+        width: 100%;
+        display: block;
+    }
+
+    img.button {
+        width: 100%;
+        height: 25%;
+    }
 }
 
 @media screen and (max-aspect-ratio: 1/1) {
@@ -124,6 +143,30 @@
 
     div.battery:after {
         visibility: hidden;
+    }
+
+    div.buttons {
+        left: 20%;
+        top: 10%;
+        width: 70%;
+        height: 80%;
+        background-color: lavender;
+        position: absolute;
+    }
+
+    span.button {
+        border: 0px;
+        padding: 0px;
+        margin: 0px;
+    }
+
+    img.button {
+        width: 23.2%;
+        height: 100%;
+        border: 0px;
+        padding: 0px;
+        margin: 0px;
+        border: 2px solid black;
     }
 }
 
