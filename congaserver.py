@@ -124,12 +124,8 @@ def robot_action(server_object):
     if (error is None) or (answer is None):
         answer = '{}'
         error = 0
-    if error != 0:
-        errcode = 400
-    else:
-        errcode = 200
     server_object.add_header("Content-Type", "application/json")
-    server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', errcode, "")
+    server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', 200, "")
     server_object.close()
 
 
@@ -482,7 +478,7 @@ class RobotConnection(BaseServer):
             ncommand = '102'
         elif command == 'return':
             ncommand = '104'
-        elif command == 'updatemap':
+        elif command == 'updateMap':
             ncommand = '131'
         elif command == 'sound':
             if "status" not in params:
@@ -541,10 +537,10 @@ class RobotConnection(BaseServer):
                 extraCommand = '"mode":"10"'
             else:
                 return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
-        elif command == 'notifyconnection': # seems to be sent whenever the tablet connects to the server
+        elif command == 'notifyConnection': # seems to be sent whenever the tablet connects to the server
             ncommand = '400'
             wait_for_ack = False
-        elif command == 'askstatus': # seems to ask the robot to send a Status packet
+        elif command == 'askStatus': # seems to ask the robot to send a Status packet
             ncommand = '98'
             wait_for_ack = False
         else:

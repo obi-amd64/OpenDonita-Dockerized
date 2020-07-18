@@ -142,6 +142,7 @@ def check_command(data, command):
 
 mode = 0
 counter_error = 0
+voice = 2
 
 send_packet(0x0010, 0x0001, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"token":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","deviceId":"yyyyyyyyyyyyyy","appKey":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","deviceType":"1","authCode":"zzzzz","deviceIp":"192.168.18.3","devicePort":"8888"}}')
 
@@ -168,7 +169,7 @@ while True:
         continue
     if mode == 0:
         mode = 1
-        send_packet(0x0018, 0x0001, None, 0x00,'{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"6","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x0018, 0x0001, None, 0x00,'{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"6","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "100"):
@@ -176,26 +177,28 @@ while True:
             mode = 2
             counter_error = 0
             timeout_mode2 = 2
-            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
-            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "102"):
         if mode == 2:
             mode = 1
-            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"1","workMode":"11","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
-            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"2","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"1","workMode":"11","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"2","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "123"):
         print("Sound ACTIVE")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        voice = 2
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "125"):
         print("Sound INACTIVE")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        voice = 1
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "110"):
@@ -203,7 +206,7 @@ while True:
             print(f"FAN status: {data['value']['fan']}")
         else:
             print("No FAN key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "145"):
@@ -211,7 +214,7 @@ while True:
             print(f"WATERTANK status: {data['value']['waterTank']}")
         else:
             print("No WATERTANK key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "106"):
@@ -219,7 +222,7 @@ while True:
             print(f"Clean mode: {data['value']['mode']}")
         else:
             print("No MODE key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "400"):
@@ -233,7 +236,7 @@ while True:
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, None):
         print(f"Unknown command {data['value']['transitCmd']}")
         # ACK for any other command
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"2","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
         continue
 
     if compare_packet(header, 0x14, 0x00c80111, 0x01080001, None, 0x03e7):

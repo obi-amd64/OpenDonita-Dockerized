@@ -8,7 +8,7 @@
         margin: 0px;
         border: 0px;
         padding: 0px;
-        background-color: blanchedalmond;
+        background-color: #663399;
         visibility: visible;
     }
 
@@ -70,12 +70,10 @@
         margin-right: auto;
         width: 40%;
         height: 80%;
-        background-color: lavender;
-    }
-
-    span.button {
-        width: 100%;
-        display: block;
+        font-size: 0px;
+        border: 2px solid black;
+        border-radius: 5px;
+        background-color: white;
     }
 
     img.button {
@@ -95,7 +93,7 @@
         border: 0px;
         padding: 0px;
         visibility: visible;
-        background-color: blanchedalmond;
+        background-color: #663399;
     }
 
     #map {
@@ -150,23 +148,20 @@
         top: 10%;
         width: 70%;
         height: 80%;
-        background-color: lavender;
         position: absolute;
-    }
-
-    span.button {
-        border: 0px;
-        padding: 0px;
-        margin: 0px;
+        font-size: 0px;
+        border: 2px solid black;
+        border-radius: 5px;
+        background-color: white;
     }
 
     img.button {
-        width: 23.2%;
         height: 100%;
+        width: 17%;
+        padding-left: 4%;
+        padding-right: 4%;
         border: 0px;
-        padding: 0px;
         margin: 0px;
-        border: 2px solid black;
     }
 }
 
@@ -174,7 +169,6 @@ body {
     font-size: 25px;
     width: 100%;
 }
-
 
 
 #div_settings {
@@ -186,6 +180,7 @@ body {
     bottom: 0px;
     left: 0px;
     right: 0px;
+    background-color: #ffffffcf;
 }
 
 #table_settings, td {
@@ -207,11 +202,6 @@ td.powerwater_active {
     background-color: #00ffff;
 }
 
-
-#audio {
-    border: 2px solid black !important;
-    margin: 2px;
-}
 
 #settings_row1, #settings_row2 {
     border-bottom: 7px solid black;

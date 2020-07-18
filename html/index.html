@@ -27,10 +27,10 @@
         <div class="battery_common battery_top"></div>
         <div class="battery battery_common battery_body"><div class="battery_level"></div><img class="charging" src="charging.svg"></div>
         <div class="buttons">
-            <span class="button"><img class="button home" src="home_disabled.svg"></span>
-            <span class="button"><img class="button startstop" src="play_enabled.svg"></span>
-            <span class="button"><img class="button sound" src="speaker_enabled.svg"></span>
-            <span class="button"><img class="button settings" src="settings.svg"></span>
+            <img class="button home" id="home" src="home_disabled.svg">
+            <img class="button startstop" id="startstop" src="play_enabled.svg">
+            <img class="button audio" id="audio" src="speaker_enabled.svg">
+            <img class="button settings" id="settings" src="settings.svg">
         </div>
     </div>
     <div id="map">
@@ -38,14 +38,14 @@
         <p><input type="button" value="Limpiar" onclick="command('/robot/all/clean');"></p>
         <p><input type="button" value="Parar" onclick="command('/robot/all/stop');"></p>
         <p><input type="button" value="Regresar" onclick="command('/robot/all/return');"></p>
-        <!--<p><input type="button" value="UpdateMap" onclick="command('robot/all/updatemap');"></p>
+        <!--<p><input type="button" value="UpdateMap" onclick="command('robot/all/updateMap');"></p>
         <p><input type="button" value="Robots" onclick="command('/robot/list');"></p>
         <p><input type="button" value="leer" onclick="command('robot/all/getStatus');"></p>
         <p><input type="button" value="escribir" onclick="command('robot/all/setStatus?map=holamundo');"></p>
-        <p><input type="button" value="notificar" onclick="command('robot/all/notifyconnection');"></p>
-        <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askstatus');"></p>
+        <p><input type="button" value="notificar" onclick="command('robot/all/notifyConnection');"></p>
+        <p><input type="button" value="UpdateStatus" onclick="command('robot/all/askStatus');"></p>-->
         <p><input type="button" value="getValue" onclick="command('robot/all/getProperty?key=test');"></p>
-        <p><input type="button" value="setValue" onclick="command('robot/all/setProperty?key=test&value=prueba');"></p> -->
+        <p><input type="button" value="setValue" onclick="command('robot/all/setProperty?key=test&value=prueba');"></p> 
         <p id="salida">Salida</p>
     </div>
     <div id="div_settings">

@@ -4,9 +4,12 @@ $(document).ready(function(){
 
 class PowerWater {
     constructor() {
-        this._fan = 2;
-        this._water = 0;
-        this._mode = 0;
+        this._values = {};
+        this._values['fan'] = 2;
+        this._values['water'] = 0;
+        this._values['mode'] = 0;
+        this._audio = true;
+        this._robot = "all";
         this._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"];
 
         $(window).resize(function() {
@@ -29,14 +32,69 @@ class PowerWater {
                 this._set_mode(x, true);
             }.bind(this));
         }
-        /*$("#audio").click(function () {
-            this._audio_enabled = !this._audio_enabled;
+
+        $("#audio").click(function () {
+            this._audio = !this._audio;
             this._set_audio(true);
-        }.bind(this));*/
+        }.bind(this));
+
         $("#back").click(function () {
             $("#div_settings").hide();
         });
+
+        $("#settings").click(function () {
+            $("#div_settings").show();
+        });
+        $("#div_settings").hide();
+
         this._set_sizes();
+        this._read_defaults();
+        this._update_status();
+    }
+
+    _store_value(name, value) {
+        this._values[name] = value;
+        $.getJSON(`robot/${this._robot}/setProperty?key=${name}&value=${value}`);
+    }
+
+    _read_value(name, cb) {
+        $.getJSON(`robot/${this._robot}/getProperty?key=${name}`).done(function (received) {
+            if (received['error'] == 0) {
+                this._values[name] = received['value'][name];
+            } else {
+                this._store_value(name, this._values[name]);
+            }
+            cb(this._values[name]);
+        }.bind(this));
+    }
+
+    _read_defaults() {
+        this._read_value('fan', function(value) {
+            this._set_fan(value, false);
+        }.bind(this));
+
+        this._read_value('water', function(value) {
+            this._set_water(value, false);
+        }.bind(this));
+
+        this._read_value('mode', function(value) {
+            this._set_mode(value, false);
+        }.bind(this));
+    }
+
+    _update_status() {
+        $.getJSON(`robot/${this._robot}/getStatus`).done(function (received) {
+            console.log(received);
+            if (received['error'] != 0) {
+                return;
+            }
+            if (received['value']['voice'] == "2") {
+                this._audio = true;
+            } else {
+                this._audio = false;
+            }
+            this._set_audio(false);
+        }.bind(this));
     }
 
     _set_sizes() {
@@ -68,13 +126,11 @@ class PowerWater {
 
     _set_audio(update) {
         let status;
-        if (this._audio_enabled) {
-            $("#pic_audio").attr("src", "speaker_enabled.svg");
-            $("#audio").addClass("powerwater_active");
+        if (this._audio) {
+            $("#audio").attr("src", "speaker_enabled.svg");
             status = "1";
         } else {
-            $("#pic_audio").attr("src", "speaker_disabled.svg");
-            $("#audio").removeClass("powerwater_active");
+            $("#audio").attr("src", "speaker_disabled.svg");
             status = "0";
         }
         if (update) {
@@ -83,7 +139,7 @@ class PowerWater {
     }
 
     _set_water(xi, update) {
-        if ((xi == 0) && (this._fan == 0)) {
+        if ((xi == 0) && (this._values['fan'] == 0)) {
             return;
         }
         for(let x=0; x<4; x++) {
@@ -93,13 +149,13 @@ class PowerWater {
         let name = `#water_${xi}`;
         $(name).addClass("powerwater_active");
         if (update) {
+            this._store_value('water', xi);
             $.getJSON(`robot/all/watertank?speed=${xi}`);
-            this._water = xi;
         }
     }
 
     _set_fan(xi, update) {
-        if ((xi == 0) && (this._water == 0)) {
+        if ((xi == 0) && (this._values['water'] == 0)) {
             return;
         }
         for(let x=0; x<4; x++) {
@@ -109,8 +165,8 @@ class PowerWater {
         let name = `#fan_${xi}`;
         $(name).addClass("powerwater_active");
         if (update) {
+            this._store_value('fan', xi);
             $.getJSON(`robot/all/fan?speed=${xi}`);
-            this._fan = xi;
         }
     }
 
@@ -122,9 +178,9 @@ class PowerWater {
         let name = `#mode_${xi}`;
         $(name).addClass("powerwater_active");
         if (update) {
+            this._store_value('mode', xi);
             let mode = this._modes[xi];
             $.getJSON(`robot/all/mode?type=${mode}`);
-            this._mode = xi;
         }
     }
 }
