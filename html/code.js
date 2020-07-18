@@ -158,7 +158,7 @@ class PowerWater {
                 $("#charging").hide();
             }
             let bat_level = received['value']['battery'];
-            let aspect = $('#battery').width() / $('#battery_level').height();
+            let aspect = $('#battery').width() / $('#battery').height();
             if (aspect > 1.0) {
                 $("#battery_level").css("width", `${bat_level}%`);
                 $("#battery_level").css("height", "100%");
