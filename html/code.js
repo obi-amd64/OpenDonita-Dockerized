@@ -208,6 +208,7 @@ class PowerWater {
         }
         this._last_map = data['value']['map'];
         this._last_track = data['value']['track'];
+        console.log(`map: ${this._last_map}; track: ${this._last_track}`);
         let track = Uint8Array.from(atob(data['value']['track']).substring(4), c => c.charCodeAt(0))
         let map =  Uint8Array.from(atob(data['value']['map']), c => c.charCodeAt(0))
         let mapw = map[5] * 256 + map[6];
