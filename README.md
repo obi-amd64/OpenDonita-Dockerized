@@ -9,7 +9,8 @@ All the documentation is in my personal blog: https://blog.rastersoft.com/?p=232
 ## Using OpenDoñita
 
 To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and
-*hostapd* to build an isolated WiFi network.
+*hostapd* to build an isolated WiFi network, but in normal operation it is enough to launch *dnsmasq* and redirect the DNS
+petitions from your WiFi router to the Raspberry.
 
 Now, in the computer with the DNS, edit the file */etc/hosts* and add these two entries:
 
@@ -18,13 +19,14 @@ Now, in the computer with the DNS, edit the file */etc/hosts* and add these two 
 
 being 192.168.X.Y the IP address of the computer where the server will run (usually it should be the Raspberry Pi too).
 This is a must because the robot connects to a server in those domains (which this project replaces), to receive from
-them the commands. The Android/iPhone app doesn't send commands directly to the robot, but only to the server, and it
-redirects them to the robot. Thus, to allow our local server to pose as the official one, we must redirect those two
-domains to our own computer.
+them the commands. The official Android/iPhone app doesn't send commands directly to the robot, but only to the server,
+and it resends them to the robot. Thus, to allow our local server to pose as the official one, we must redirect those
+two domains to our own computer.
 
-Now restart *hostapd* with *sudo systemctl restart hostapd* to ensure that it re-reads the configuration.
+Now restart *dnsmasq* with *sudo systemctl restart netmasq* to ensure that it re-reads the configuration.
 
-The next step is to change the DNS in your WiFi router to point to the *hostapd*. This is dependant on your specific router.
+The next step is to change the DNS in your WiFi router to point to the Raspberry if you aren't using an isolated WiFi
+network. This is dependant on your specific router.
 
 After doing this, entering those domains in your browser should return an error.
 
@@ -32,7 +34,15 @@ Now, copy all the files of this project in the computer choosen to be your own s
 
     sudo ./congaserver.py
 
-It is important to launch it as root because it needs to bind to the port 80, and only root can do that.
+It is important to launch it as root because it needs to bind to the port 80, and only root can do that. Also, if you
+want to be able to close your ssh connection with the Raspberry, you should launch it using *nohup* (or *screen*
+if you want to check it out):
+
+    sudo screen ./congaserver.py
+
+and detach by pressing *Ctrl+a*, then *d*. To reatach, just do
+
+    sudo screen -r
 
 Now you can check if everything works by opening any of the previous domains in your browser. You should see this page:
 
@@ -42,12 +52,14 @@ Now you can check if everything works by opening any of the previous domains in 
 
 Now there are two ways of connecting the robot to the server:
 
-* turn off the WiFi router and turn on again
+* turn off the WiFi router and turn on again (or stop *hostapd*, wait some seconds, and start it again if you are using
+an isolates WiFi network)
 
-* or turn off the robot and turn on it again
+* or turn off the robot for some seconds and turn on it again. This requires removing it from the charging base and
+turning it off with the lateral switch.
 
-when you do it, you should see that, after several seconds, the Wifi light in the robot turns on. Now you can control it
-from the new app.
+when you do it, you should see that, after several seconds, the Wifi light in the robot turns on, and in the server
+screen there are several messages. Now you can control it from the new app.
 
 ## Using the app
 
