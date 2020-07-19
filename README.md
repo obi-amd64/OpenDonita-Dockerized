@@ -35,4 +35,4 @@ It is important to launch it as root because it needs to bind to the port 80, an
 
 Now you can check if everything works by opening any of the previous domains in your browser. You should see this page:
 
-![capture1.png]
+![The new app](capture1.png)
