@@ -36,3 +36,52 @@ It is important to launch it as root because it needs to bind to the port 80, an
 Now you can check if everything works by opening any of the previous domains in your browser. You should see this page:
 
 ![The new app](capture1.png)
+
+## Connecting the robot to the new server
+
+Now there are two ways of connecting the robot to the server:
+
+* turn off the WiFi router and turn on again
+
+* or turn off the robot and turn on it again
+
+when you do it, you should see that, after several seconds, the Wifi light in the robot turns on. Now you can control it
+from the new app.
+
+## Using the app
+
+In the main screen you have four buttons:
+
+The *home* button: when it is filled of color, it means that the robot is not in the base. Clicking on it will send it
+to the charger.
+
+The *play* button: this triangle starts a new clean cycle, and will change to a square (or *stop*) button, which will
+stop the clean cycle.
+
+The *sound* button: this is an speaker, and pressing on it enables or disables the *beeps* emited by the robot.
+
+The *settings* button: this button will open a popup where it is possible to choose the fan power, the water flux, and
+the clean mode:
+
+![The settings popup](capture2.png)
+
+This configuration will be remembered even if the robot is turned off and on again.
+
+## Pairing the robot manually
+
+To pair the robot you need a computer with a WiFi adapter. First, put your robot in *pairing mode* by pressing the power
+button until it sends a beep. The Wifi light will blink.
+
+Now, in your computer, search for a WiFi network called *CongaGyro_XXXXXX* (if you are using a robot from another distributor,
+the Wifi SSID can change) and connect to it (it has no password).
+
+After connecting, run *./configconga.py WIFI_SSID WIFI_PASSWORD* (being WIFI_SSID and WIFI_PASSWORD the SSID and the password
+of your Wifi network).
+
+After about two seconds, your computer will be disconnected from that network, and the robot will connect to your WiFi.
+
+## Author
+
+Sergio Costas
+http://www.rastersoft.com
+rastersoft@gmail.com
