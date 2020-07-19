@@ -82,6 +82,6 @@ After about two seconds, your computer will be disconnected from that network, a
 
 ## Author
 
-Sergio Costas
-http://www.rastersoft.com
-rastersoft@gmail.com
+Sergio Costas  
+http://www.rastersoft.com  
+rastersoft@gmail.com  
