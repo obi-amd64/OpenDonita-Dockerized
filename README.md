@@ -23,6 +23,9 @@ them the commands. The official Android/iPhone app doesn't send commands directl
 and it resends them to the robot. Thus, to allow our local server to pose as the official one, we must redirect those
 two domains to our own computer.
 
+IMPORTANT: the new server requires Python 3.6 or later. Raspbian has Python 3.7, but OSMC, at the time of writting this,
+has Python 3.5. Take it into account if you want to reuse a RPi that you are already using.
+
 Now restart *dnsmasq* with *sudo systemctl restart netmasq* to ensure that it re-reads the configuration.
 
 The next step is to change the DNS in your WiFi router to point to the Raspberry if you aren't using an isolated WiFi
