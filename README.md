@@ -8,7 +8,8 @@ All the documentation is in my personal blog: https://blog.rastersoft.com/?p=232
 
 ## Using OpenDoñita
 
-To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq*.
+To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and
+*hostapd* to build an isolated WiFi network.
 
 Now, in the computer with the DNS, edit the file */etc/hosts* and add these two entries:
 
