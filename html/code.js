@@ -77,7 +77,7 @@ class PowerWater {
         this._set_sizes();
         this._read_defaults(false);
         this._update_status();
-        $.getJSON(`robot/${this._robot}/notifyConnection`);
+        //$.getJSON(`robot/${this._robot}/notifyConnection`);
         setInterval(this._update_status.bind(this), 1000);
     }
 
