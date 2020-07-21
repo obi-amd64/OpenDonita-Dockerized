@@ -138,7 +138,7 @@ class PowerWater {
             } else {
                 this._allowStart = false;
             }
-            if (mode == 1) {
+            if ((mode == 1) || (mode == 4)) {
                 this._allowStop = true;
             } else {
                 this._allowStop = false;
@@ -226,6 +226,10 @@ class PowerWater {
         let miny = chargerY;
         let maxy = chargerY;
         let index = 0;
+        let errorCharger = false;
+        if ((chargerX == -1) || (chargerY == -1)) {
+            errorCharger = true;
+        }
 
         while(pos < map.length) {
             if ((map[pos] & 0xc0) == 0xc0) {
@@ -252,17 +256,25 @@ class PowerWater {
                     let x = index % mapw;
                     let y = Math.floor(index / mapw);
                     index++;
-                    if (x < minx) {
+                    if (errorCharger) {
                         minx = x;
-                    }
-                    if (y < miny) {
                         miny = y;
-                    }
-                    if (x > maxx) {
                         maxx = x;
-                    }
-                    if (y > maxy) {
                         maxy = y;
+                        errorCharger = false;
+                    } else {
+                        if (x < minx) {
+                            minx = x;
+                        }
+                        if (y < miny) {
+                            miny = y;
+                        }
+                        if (x > maxx) {
+                            maxx = x;
+                        }
+                        if (y > maxy) {
+                            maxy = y;
+                        }
                     }
                 }
             }
@@ -283,7 +295,7 @@ class PowerWater {
             radius1 = radius2;
         }
         radius2 = radius1 / 2;
-        let radius3 = radius2 * 0.8;
+        let radius3 = radius1 * 1.6; // each point is 20cm wide, and the robot is 32cm wide
 
         for(let y = miny; y <= maxy; y++) {
             for(let x = minx; x <= maxx; x++) {
@@ -294,36 +306,64 @@ class PowerWater {
                 }
                 switch (pixels[pos]) {
                     case 1:
-                        ctx.fillStyle = '#0000ff';
+                        // Wall
+                        ctx.fillStyle = '#000000';
                         break;
                     case 2:
-                        ctx.fillStyle = '#ff0000';
+                        // Floor
+                        ctx.fillStyle = '#ffff00';
                         break;
                 }
                 ctx.beginPath();
-                ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
+                //ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
+                let ox = (x - minx)*radius1
+                let oy = (y - miny)*radius1
+                ctx.fillRect(ox, oy, radius1, radius1);
                 ctx.fill();
                 pos++;
             }
         }
-        ctx.fillStyle = '#00ff00';
-        ctx.beginPath();
-        ctx.arc((chargerX - minx)*radius1 + radius2, (chargerY - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = radius3 / 2;
+        let x;
+        let y;
+        ctx.lineWidth = radius3;
         let first = true;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = '#00ffff';
+        // Clean zones
         for(let a=0; a < track.length; a += 2) {
-            let x = track[a];
-            let y = track[a + 1];
-            if (first) {
+            if (!first) {
+                ctx.beginPath();
                 ctx.moveTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+            }
+            x = track[a];
+            y = track[a + 1];
+            if (first) {
                 first = false;
                 continue;
             }
             ctx.lineTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+            ctx.stroke();
         }
+
+        // robot position
+        ctx.lineWidth = radius2 / 2;
+        ctx.fillStyle = '#ff00ff';
+        ctx.strokeStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius2 * 0.8, 0, 2 * Math.PI);
+        ctx.fill();
         ctx.stroke();
+
+        // charger
+        if ((chargerX != -1) && (chargerY != -1)) {
+            ctx.lineWidth = radius2 / 2;
+            ctx.fillStyle = '#00ff00';
+            ctx.strokeStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc((chargerX - minx)*radius1 + radius2, (chargerY - miny)*radius1 + radius2, radius2 * 0.8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+        }
     }
 
     _set_block_size(name, w, h) {
