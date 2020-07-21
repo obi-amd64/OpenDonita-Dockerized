@@ -83,6 +83,10 @@ the clean mode:
 
 This configuration will be remembered even if the robot is turned off and on again.
 
+During cleaning, the app will generate the map in real time:
+
+![Map example](capture3.png)
+
 ## Pairing the robot manually
 
 To pair the robot you need a computer with a WiFi adapter. First, put your robot in *pairing mode* by pressing the power
