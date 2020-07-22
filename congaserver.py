@@ -37,7 +37,8 @@ except:
     pass
 
 robot_data = {}
-html_path = "html"
+launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
+html_path = os.path.join(launch_path, "html")
 
 # Errors:
 #
