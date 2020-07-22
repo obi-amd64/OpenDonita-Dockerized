@@ -33,19 +33,14 @@ network. This is dependant on your specific router.
 
 After doing this, entering those domains in your browser should return an error.
 
-Now, copy all the files of this project in the computer choosen to be your own server, and launch it with:
+Now, copy all the files of this project in the computer choosen to be your own server, and install it with:
 
-    sudo ./congaserver.py
+    sudo ./install.sh
 
-It is important to launch it as root because it needs to bind to the port 80, and only root can do that. Also, if you
-want to be able to close your ssh connection with the Raspberry, you should launch it using *nohup* (or *screen*
-if you want to check it out):
+After doing this, it will be installed in /opt/congaserver, a new systemd service will be created and enabled (which will
+be useful if the board reboots), but you still will have to launch it manually the first time with:
 
-    sudo screen ./congaserver.py
-
-and detach by pressing *Ctrl+a*, then *d*. To reatach, just do
-
-    sudo screen -r
+    sudo systemctl start congaserver.service
 
 Now you can check if everything works by opening any of the previous domains in your browser. You should see this page:
 
