@@ -350,7 +350,7 @@ class HTTPConnection(BaseServer):
 
     def send_answer_json_close(self, data):
         result = '{"error":0, "value": '+json.dumps(data)+'}'
-        server_object.add_header("Content-Type", "application/json")
+        self.add_header("Content-Type", "application/json")
         self.send_answer(result.encode('utf8'), 200, 'OK')
         self.close()
 

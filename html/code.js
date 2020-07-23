@@ -112,6 +112,13 @@ class PowerWater {
     }
 
     _update_status() {
+        $.getJSON(`robot/list`).done(function (received) {
+            if (received['value'].length == 0) {
+                $('#noconga').css('z-index', 10);
+            } else {
+                $('#noconga').css('z-index', 0);
+            }
+        });
         $.getJSON(`robot/${this._robot}/getStatus`).done(function (received) {
             if (received['error'] != 0) {
                 return;
