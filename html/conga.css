@@ -34,7 +34,7 @@
         border: 0px;
         padding: 0px;
         background-color: #ffffff;
-        z-index: 9;
+        z-index: 8;
     }
 
     div.battery_body {
@@ -131,7 +131,7 @@
         border: 0px;
         padding: 0px;
         background-color: #ffffff;
-        z-index: 9;
+        z-index: 8;
     }
 
     div.battery_top {
@@ -211,6 +211,7 @@ body {
     left: 0px;
     right: 0px;
     background-color: #ffffffcf;
+    z-index: 9;
 }
 
 #table_settings, td {
