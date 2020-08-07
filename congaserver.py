@@ -29,6 +29,7 @@ import traceback
 import signal
 import os
 import configparser
+import logging
 
 configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
 try:
@@ -39,6 +40,9 @@ except:
 robot_data = {}
 launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")
+
+logpath = os.path.join(launch_path, "status.log")
+logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(levelname)s: %(asctime)s\n%(message)s')
 
 # Errors:
 #
@@ -438,7 +442,7 @@ class RobotConnection(BaseServer):
         global multiplexer
 
         super().__init__(sock)
-        print("New robot connection")
+        logging.info("Connected a new robot")
         self._address = address
         self._identified = False
         self._packet_queue = []
@@ -467,6 +471,7 @@ class RobotConnection(BaseServer):
 
     def send_command(self, command, params):
         if not self._identified:
+            logging.error("Sent a command before the robot has identified itself")
             return 4, "Not identified"
 
         wait_for_ack = True
@@ -474,19 +479,25 @@ class RobotConnection(BaseServer):
         extraCommand2 = None
 
         if command == 'clean':
+            logging.info("Starting to clean")
             ncommand = '100'
         elif command == 'stop':
+            logging.info("Stopping cleaning")
             ncommand = '102'
         elif command == 'return':
+            logging.info("Returning to base")
             ncommand = '104'
         elif command == 'updateMap':
+            logging.info("Asking map")
             ncommand = '131'
         elif command == 'sound':
             if "status" not in params:
                 return 6, "Missing parameter (status)"
             if params['status'] == '0':
+                logging.info("Disabling sound")
                 ncommand = '125'
             elif params['status'] == '1':
+                logging.info("Enabling sound")
                 ncommand = '123'
             else:
                 return 7, "Invalid value (valid values are 0 and 1)"
@@ -504,6 +515,7 @@ class RobotConnection(BaseServer):
                 extraCommand = '"fan":"3"' # TURBO
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+            logging.info(f"Setting fan to {params['speed']}")
         elif command == 'watertank':
             ncommand = '145'
             if 'speed' not in params:
@@ -518,6 +530,7 @@ class RobotConnection(BaseServer):
                 extraCommand2 = '"waterTank":"20"' # FAST
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+            logging.info(f"Setting water to {params['speed']}")
         elif command == 'mode':
             ncommand = '106'
             if 'type' not in params:
@@ -538,13 +551,17 @@ class RobotConnection(BaseServer):
                 extraCommand = '"mode":"10"'
             else:
                 return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
+            logging.info(f"Setting mode to {params['type']}")
         elif command == 'notifyConnection': # seems to be sent whenever the tablet connects to the server
             ncommand = '400'
             wait_for_ack = False
+            logging.info("Web client opened")
         elif command == 'askStatus': # seems to ask the robot to send a Status packet
             ncommand = '98'
             wait_for_ack = False
+            logging.info("Asking status")
         else:
+            logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
 
         if self._waiting_for_command is not None:
@@ -603,7 +620,6 @@ class RobotConnection(BaseServer):
             return True
         # Identification
         if self._check_header(header, None, 0x0010, 0x0001, 0x00):
-            print("Identification")
             payload = json.loads(payload)
             self._token = payload['value']['token']
             self._deviceId = payload['value']['deviceId']
@@ -615,12 +631,14 @@ class RobotConnection(BaseServer):
             self._identified = True
             now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             self._send_packet(0x00c80011, 0x01, header[3], 0x00, '{"msg":"login succeed","result":0,"version":"1.0","time":"'+now+'"}')
+            logging.info(f"Robot identified as {self._deviceId} at IP {self._deviceIP}")
             return True
         # Status
         if self._check_header(header, None, 0x0018, 0x0001, 0x00):
             print("Status")
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             self._send_payload(payload)
+            self._log_payload(payload, "status")
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
@@ -637,17 +655,28 @@ class RobotConnection(BaseServer):
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):
             print("Map")
             self._send_payload(payload)
+            self._log_payload(payload, "map")
             return True
         # Error
         if self._check_header(header, None, 0x0016, 0x0001, 0x00):
             print("Error")
+            self._log_payload(payload, "error")
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             return True
         print("Unknown packet")
         print(header)
         print(payload)
+        logging.info(f"Unknown packet {header} {payload}")
         return True
 
+    def _log_payload(self, payload, type):
+        try:
+            jsonPayload = json.loads(payload)
+        except:
+            print(f'Payload is not a JSON file: "{payload}"')
+            logging.error(f'Payload is not a JSON file: "{payload}"')
+            return
+        logging.info(f"New {type}: {json.dumps(jsonPayload, sort_keys=True, indent=4)}\n\n")
 
     def _send_payload(self, payload):
         if len(payload) == 0:
