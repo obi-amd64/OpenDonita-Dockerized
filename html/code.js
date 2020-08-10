@@ -125,6 +125,7 @@ class PowerWater {
             if (received['error'] != 0) {
                 return;
             }
+            console.log(received['value']['battery']);
             // audio enabled/disabled
             if (received['value']['voice'] == "2") {
                 this._audio = true;
