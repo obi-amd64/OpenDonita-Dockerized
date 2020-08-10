@@ -1,5 +1,5 @@
 import socket
-from congaModules.signal import Signal
+from congaModules.observer import Signal
 
 class BaseServer(object):
     def __init__(self, sock = None):

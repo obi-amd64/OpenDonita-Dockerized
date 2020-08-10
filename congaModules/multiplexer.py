@@ -6,16 +6,16 @@ import signal
 
 from congaModules.httpClasses import HTTPServer
 from congaModules.robotClasses import RobotServer
-from congaModules.signal import Signal
+from congaModules.observer import Signal
 
 class Multiplexer(object):
-    def __init__(self, registered_pages, robot_manager, port_http = 80, port_bona = 20008):
+    def __init__(self, registered_pages, port_http = 80, port_bona = 20008):
         super().__init__()
 
         self._socklist = []
         self._http_server = HTTPServer(registered_pages, port_http)
         self._add_socket(self._http_server)
-        self._robot_server = RobotServer(self, robot_manager, port_bona)
+        self._robot_server = RobotServer(self, port_bona)
         self._add_socket(self._robot_server)
         signal.signal(signal.SIGINT, self._close_and_exit)
         self.timer = Signal("timer", self)

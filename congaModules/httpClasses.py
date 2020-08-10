@@ -1,6 +1,7 @@
-from congaModules.baseServer import BaseServer
 import json
 from urllib.parse import parse_qs
+
+from congaModules.baseServer import BaseServer
 
 class HTTPServer(BaseServer):
     def __init__(self, registered_pages, port = 80):

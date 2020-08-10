@@ -24,14 +24,8 @@ import random
 import os
 import logging
 
-from congaModules.robot import RobotManager
+import congaModules.robotManager
 from congaModules.multiplexer import Multiplexer
-
-configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
-try:
-    os.makedirs(configPath)
-except:
-    pass
 
 robot_data = {}
 
@@ -97,9 +91,8 @@ def send_robot_header(server_object):
 
 
 def robot_action(server_object):
-    global robotManager
 
-    robots = robotManager.get_robot_list()
+    robots = congaModules.robotManager.robotManager.get_robot_list()
     uri = server_object.get_path()
     error = None
     if uri.startswith('/robot/'):
@@ -114,11 +107,11 @@ def robot_action(server_object):
         action = action[pos+1:]
         if robotId == "all":
             for robot_id in robots:
-                robot = robotManager.get_robot(robot_id)
+                robot = congaModules.robotManager.robotManager.get_robot(robot_id)
                 error, answer = robot.send_command(action, server_object.get_params())
         else:
             if robotId in robots:
-                robot = robotManager.get_robot(robotId)
+                robot = congaModules.robotManager.robotManager.get_robot(robotId)
                 error, answer = robot.send_command(action, server_object.get_params())
             else:
                 server_object.add_header("Content-Type", "application/json")
@@ -134,9 +127,8 @@ def robot_action(server_object):
 
 
 def robot_list(server_object):
-    global robotManager
 
-    robots = robotManager.get_robot_list()
+    robots = congaModules.robotManager.robotManager.get_robot_list()
     data = []
     for robot_id in robots:
         data.append(robot_id)
@@ -189,14 +181,11 @@ registered_pages = {
 }
 
 
-robotManager = RobotManager(configPath)
-
-
 if len(sys.argv) > 2:
     port_http = int(sys.argv[1])
     port_bona = int(sys.argv[2])
 else:
     port_http = 80
     port_bona = 20008
-multiplexer = Multiplexer(registered_pages, robotManager, port_http, port_bona)
+multiplexer = Multiplexer(registered_pages, port_http, port_bona)
 multiplexer.run()

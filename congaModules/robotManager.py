@@ -105,3 +105,10 @@ class Robot(object):
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = value[key]
+
+configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
+try:
+    os.makedirs(configPath)
+except:
+    pass
+robotManager = RobotManager(configPath)

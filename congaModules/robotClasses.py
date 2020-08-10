@@ -1,14 +1,15 @@
-from congaModules.baseServer import BaseServer
-from congaModules.signal import Signal
 import logging
 import datetime
 import json
 import struct
 
+import congaModules.robotManager
+from congaModules.baseServer import BaseServer
+from congaModules.observer import Signal
+
 class RobotServer(BaseServer):
-    def __init__(self, multiplexer, robot_manager, port = 20008):
+    def __init__(self, multiplexer, port = 20008):
         super().__init__()
-        self._robot_manager = robot_manager
         self._multiplexer = multiplexer
         self._sock.bind(('', port))
         self._sock.listen(10)
@@ -17,11 +18,11 @@ class RobotServer(BaseServer):
         # there is a new connection
         print("Robot connected")
         newsock, address = self._sock.accept()
-        return RobotConnection(newsock, address, self._multiplexer, self._robot_manager)
+        return RobotConnection(newsock, address, self._multiplexer)
 
 
 class RobotConnection(BaseServer):
-    def __init__(self, sock, address, multiplexer, robot_manager):
+    def __init__(self, sock, address, multiplexer):
         super().__init__(sock)
         logging.info("Connected a new robot")
         self._address = address
@@ -35,7 +36,6 @@ class RobotConnection(BaseServer):
         self._deviceIP = None
         self._devicePort = None
         self._waiting_for_command = None
-        self._robot_manager = robot_manager
         multiplexer.timer.connect(self.timeout)
         self.statusUpdate = Signal("status", self)
 
@@ -208,7 +208,7 @@ class RobotConnection(BaseServer):
             self._authCode = payload['value']['authCode']
             self._deviceIP = payload['value']['deviceIp']
             self._devicePort = payload['value']['devicePort']
-            self._robot_manager.get_robot(self._deviceId).connected(self)
+            congaModules.robotManager.robotManager.get_robot(self._deviceId).connected(self)
             self._identified = True
             now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             self._send_packet(0x00c80011, 0x01, header[3], 0x00, '{"msg":"login succeed","result":0,"version":"1.0","time":"'+now+'"}')
