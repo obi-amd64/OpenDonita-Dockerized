@@ -1,20 +1,44 @@
+# Copyright 2020 (C) Raster Software Vigo (Sergio Costas)
+#
+# This file is part of OpenDoñita
+#
+# OpenDoñita is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# OpenDoñita is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 import json
 from urllib.parse import parse_qs
 
 from congaModules.baseServer import BaseServer
 
 class HTTPServer(BaseServer):
-    def __init__(self, registered_pages, port = 80):
+    def __init__(self):
         super().__init__()
+        self._registered_pages = {}
+        self._port = 80
+
+    def set_pages(self, registered_pages):
         self._registered_pages = registered_pages
-        self._sock.bind(('', port))
+
+    def set_port(self, port = 80):
+        self._port = port
+
+    def added(self):
+        self._sock.bind(('', self._port))
         self._sock.listen(10)
 
     def data_available(self):
         # there is a new connection
         newsock, address = self._sock.accept()
         return HTTPConnection(self._registered_pages, newsock, address)
-
 
 class HTTPConnection(BaseServer):
     """ Manages an specific connection to the HTTP server """
@@ -140,3 +164,6 @@ class HTTPConnection(BaseServer):
         chunk = f'{hex(len(text))[2:]}\r\n{text}\r\n'
         self.send_answer(chunk)
         self.send_answer('0\r\n\r\n')
+
+
+http_server = HTTPServer()

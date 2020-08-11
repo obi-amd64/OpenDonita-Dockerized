@@ -24,8 +24,10 @@ import random
 import os
 import logging
 
-import congaModules.robotManager
-from congaModules.multiplexer import Multiplexer
+from congaModules.robotManager import robot_manager
+from congaModules.multiplexer import multiplexer
+from congaModules.httpClasses import http_server
+from congaModules.robotClasses import robot_server
 
 robot_data = {}
 
@@ -91,8 +93,7 @@ def send_robot_header(server_object):
 
 
 def robot_action(server_object):
-
-    robots = congaModules.robotManager.robotManager.get_robot_list()
+    robots = robot_manager.get_robot_list()
     uri = server_object.get_path()
     error = None
     if uri.startswith('/robot/'):
@@ -107,11 +108,11 @@ def robot_action(server_object):
         action = action[pos+1:]
         if robotId == "all":
             for robot_id in robots:
-                robot = congaModules.robotManager.robotManager.get_robot(robot_id)
+                robot = robot_manager.get_robot(robot_id)
                 error, answer = robot.send_command(action, server_object.get_params())
         else:
             if robotId in robots:
-                robot = congaModules.robotManager.robotManager.get_robot(robotId)
+                robot = robot_manager.get_robot(robotId)
                 error, answer = robot.send_command(action, server_object.get_params())
             else:
                 server_object.add_header("Content-Type", "application/json")
@@ -127,8 +128,7 @@ def robot_action(server_object):
 
 
 def robot_list(server_object):
-
-    robots = congaModules.robotManager.robotManager.get_robot_list()
+    robots = robot_manager.get_robot_list()
     data = []
     for robot_id in robots:
         data.append(robot_id)
@@ -187,5 +187,12 @@ if len(sys.argv) > 2:
 else:
     port_http = 80
     port_bona = 20008
-multiplexer = Multiplexer(registered_pages, port_http, port_bona)
+
+http_server.set_pages(registered_pages)
+http_server.set_port(port_http)
+robot_server.set_port(port_bona)
+
+multiplexer.add_socket(http_server)
+multiplexer.add_socket(robot_server)
+
 multiplexer.run()

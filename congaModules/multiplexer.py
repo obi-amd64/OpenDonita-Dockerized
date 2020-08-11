@@ -1,29 +1,40 @@
+# Copyright 2020 (C) Raster Software Vigo (Sergio Costas)
+#
+# This file is part of OpenDoñita
+#
+# OpenDoñita is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# OpenDoñita is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 import datetime
 import select
 import sys
 import traceback
 import signal
 
-from congaModules.httpClasses import HTTPServer
-from congaModules.robotClasses import RobotServer
 from congaModules.observer import Signal
 
 class Multiplexer(object):
-    def __init__(self, registered_pages, port_http = 80, port_bona = 20008):
+    def __init__(self):
         super().__init__()
 
         self._socklist = []
-        self._http_server = HTTPServer(registered_pages, port_http)
-        self._add_socket(self._http_server)
-        self._robot_server = RobotServer(self, port_bona)
-        self._add_socket(self._robot_server)
         signal.signal(signal.SIGINT, self._close_and_exit)
         self.timer = Signal("timer", self)
         self._before = datetime.datetime.now().timestamp()
         self._interval = 0.5
 
-    def _add_socket(self, socket_class):
+    def add_socket(self, socket_class):
         if socket_class not in self._socklist:
+            socket_class.added()
             self._socklist.append(socket_class)
             socket_class.closedSignal.connect(self._remove_socket)
 
@@ -44,7 +55,7 @@ class Multiplexer(object):
                     traceback.print_exc()
                     has_data.close()
                 if retval is not None:
-                    self._add_socket(retval)
+                    self.add_socket(retval)
             now = datetime.datetime.now().timestamp()
             if now >= (self._before + self._interval):
                 self._before = now
@@ -55,3 +66,5 @@ class Multiplexer(object):
         for s in self._socklist[:]:
             s.close()
         sys.exit(0)
+
+multiplexer = Multiplexer()

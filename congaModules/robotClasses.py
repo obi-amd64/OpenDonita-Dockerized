@@ -1,28 +1,50 @@
+# Copyright 2020 (C) Raster Software Vigo (Sergio Costas)
+#
+# This file is part of OpenDoñita
+#
+# OpenDoñita is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# OpenDoñita is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
 import logging
 import datetime
 import json
 import struct
 
-import congaModules.robotManager
+from congaModules.robotManager import robot_manager
 from congaModules.baseServer import BaseServer
+from congaModules.multiplexer import multiplexer
 from congaModules.observer import Signal
 
 class RobotServer(BaseServer):
-    def __init__(self, multiplexer, port = 20008):
+    def __init__(self):
         super().__init__()
-        self._multiplexer = multiplexer
-        self._sock.bind(('', port))
+        self._port = 20008
+
+    def set_port(self, port = 20008):
+        self._port = port
+
+    def added(self):
+        self._sock.bind(('', self._port))
         self._sock.listen(10)
 
     def data_available(self):
         # there is a new connection
         print("Robot connected")
         newsock, address = self._sock.accept()
-        return RobotConnection(newsock, address, self._multiplexer)
+        return RobotConnection(newsock, address)
 
 
 class RobotConnection(BaseServer):
-    def __init__(self, sock, address, multiplexer):
+    def __init__(self, sock, address):
         super().__init__(sock)
         logging.info("Connected a new robot")
         self._address = address
@@ -208,7 +230,7 @@ class RobotConnection(BaseServer):
             self._authCode = payload['value']['authCode']
             self._deviceIP = payload['value']['deviceIp']
             self._devicePort = payload['value']['devicePort']
-            congaModules.robotManager.robotManager.get_robot(self._deviceId).connected(self)
+            robot_manager.get_robot(self._deviceId).connected(self)
             self._identified = True
             now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             self._send_packet(0x00c80011, 0x01, header[3], 0x00, '{"msg":"login succeed","result":0,"version":"1.0","time":"'+now+'"}')
@@ -299,3 +321,5 @@ class RobotConnection(BaseServer):
         # if len(data) > 0:
         #     print("    '"+ data.decode('utf8').replace('\n','\\n\n    ').replace('\r','\\r') + "'")
         # print()
+
+robot_server = RobotServer()
