@@ -160,11 +160,32 @@ mode = 0
 counter_error = 0
 voice = 2
 
+battery = 100
+bat_timeout = 0
+workstate = 6
+
+def get_status():
+    return '{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"'+str(workstate)+'","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"'+str(battery)+'","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}'
+
 send_packet(0x0010, 0x0001, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"token":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","deviceId":"yyyyyyyyyyyyyy","appKey":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","deviceType":"1","authCode":"zzzzz","deviceIp":"192.168.18.3","devicePort":"8888"}}')
 
 while True:
     l = select.select([s],[],[],1)
     if len(l[0]) == 0:
+        bat_timeout += 1
+        if bat_timeout >= 5:
+            bat_timeout = 0
+            if workstate == 5:
+                battery += 1
+                if battery >= 100:
+                    battery = 100
+                    workstate = 6
+            else:
+                battery -= 1
+                if workstate == 6:
+                    if battery <= 80:
+                        workstate = 5
+            send_packet(0x0018, 0x01, None, 0x00, get_status())
         timeout -= 1
         if timeout == 0:
             timeout = max_timeout
@@ -185,7 +206,7 @@ while True:
         continue
     if mode == 0:
         mode = 1
-        send_packet(0x0018, 0x0001, None, 0x00,'{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"6","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x0018, 0x0001, None, 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "100"):
@@ -193,28 +214,28 @@ while True:
             mode = 2
             counter_error = 0
             timeout_mode2 = 2
-            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
-            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+            send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "102"):
         if mode == 2:
             mode = 1
-            send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"1","workMode":"11","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
-            send_packet(0x0018, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"102","workState":"2","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+            send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+            send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "123"):
         print("Sound ACTIVE")
         voice = 2
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "125"):
         print("Sound INACTIVE")
         voice = 1
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "110"):
@@ -222,7 +243,7 @@ while True:
             print(f"FAN status: {data['value']['fan']}")
         else:
             print("No FAN key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "145"):
@@ -230,7 +251,7 @@ while True:
             print(f"WATERTANK status: {data['value']['waterTank']}")
         else:
             print("No WATERTANK key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "106"):
@@ -238,7 +259,7 @@ while True:
             print(f"Clean mode: {data['value']['mode']}")
         else:
             print("No MODE key in data")
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "400"):
@@ -252,7 +273,7 @@ while True:
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, None):
         print(f"Unknown command {data['value']['transitCmd']}")
         # ACK for any other command
-        send_packet(0x00fa, 0x01, header[3], 0x00, '{"version":"1.0","control":{"targetId":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","targetType":"3","broadcast":"0"},"value":{"noteCmd":"102","workState":"5","workMode":"0","fan":"2","direction":"0","brush":"2","battery":"100","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.11.416(513)","attract":"0","deviceIp":"192.168.18.3","devicePort":"8888","cleanGoon":"2"}}')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, 0x14, 0x00c80111, 0x01080001, None, 0x03e7):
