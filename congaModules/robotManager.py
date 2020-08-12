@@ -55,7 +55,8 @@ class Robot(object):
         self._notecmdKeys = ['workState','workMode','fan','direction','brush','battery','voice','error','standbyMode',
                              'waterTank','clearComponent','waterMark','version','attract','deviceIp','devicePort',
                              'cleanGoon', 'clearArea','clearTime','clearSign','clearModule','isFinish','chargerPos',
-                             'map','track','errorCode','doTime']
+                             'map','track','errorCode','doTime',
+                             'appKey','deviceType','authCode','funDefine','nonce_str','version','sign']
         self._resetStatus()
 
     def connected(self, connection):
@@ -121,6 +122,12 @@ class Robot(object):
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = value[key]
+
+    def httpDataUpdate(self, data):
+        for key in data:
+            if key not in self._notecmdKeys:
+                continue
+            self._notecmdValues[key] = data[key]
 
 configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
 try:

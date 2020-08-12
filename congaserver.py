@@ -29,8 +29,6 @@ from congaModules.multiplexer import multiplexer
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
 
-robot_data = {}
-
 launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")
 
@@ -51,6 +49,9 @@ logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(levelname)s
 
 def robot_clear_time(server_object):
     server_object.convert_data()
+    data = server_object.get_data()
+    robot = robot_manager.get_robot(data['deviceId'])
+    robot.httpDataUpdate(data)
     send_robot_header(server_object)
     server_object.send_chunked('{"msg":"ok","result":"0","version":"1.0.0"}')
     server_object.close()
@@ -60,6 +61,9 @@ def robot_get_token(server_object):
     server_object.convert_data()
 
     data = server_object.get_data()
+    robot = robot_manager.get_robot(data['deviceId'])
+    robot.httpDataUpdate(data)
+    robot_data = {}
     robot_data['appKey'] = data['appKey']
     robot_data['deviceId'] = data['deviceId']
     robot_data['deviceType'] = data['deviceType']

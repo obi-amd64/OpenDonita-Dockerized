@@ -223,6 +223,8 @@ class RobotConnection(BaseServer):
             return True
         # Identification
         if self._check_header(header, None, 0x0010, 0x0001, 0x00):
+            self._send_payload(payload)
+            self._log_payload(payload, "connection")
             payload = json.loads(payload)
             self._token = payload['value']['token']
             self._deviceId = payload['value']['deviceId']
