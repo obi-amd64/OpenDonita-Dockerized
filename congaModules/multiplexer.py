@@ -40,7 +40,6 @@ class Multiplexer(object):
 
     def _remove_socket(self, name, socket_class):
         if socket_class in self._socklist:
-            print("Removing")
             self._socklist.remove(socket_class)
             socket_class.closedSignal.disconnect(self._remove_socket)
 

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import socket
+import logging
 from congaModules.observer import Signal
 
 class BaseServer(object):
@@ -23,7 +24,6 @@ class BaseServer(object):
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             self._sock = sock
-        print(f"Socket: {self.fileno()}")
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self._data = b""
         self._closed = False
@@ -50,7 +50,6 @@ class BaseServer(object):
     def close(self):
         """ Called when the socket is closed and the class will be destroyed """
         if not self._closed:
-            print(f"Closing socket {self.fileno()}")
             try:
                 self._sock.shutdown(socket.SHUT_RDWR)
             except:

@@ -57,7 +57,17 @@ class Robot(object):
                              'cleanGoon', 'clearArea','clearTime','clearSign','clearModule','isFinish','chargerPos',
                              'map','track','errorCode','doTime',
                              'appKey','deviceType','authCode','funDefine','nonce_str','version','sign']
+        self._defPersistent('water', '0')
+        self._defPersistent('fan', '2')
+        self._defPersistent('mode', '0')
+        self._defPersistent('battery_guard_enabled', '1')
+        self._defPersistent('battery_guard_level', '80')
+        self._defPersistent('battery_guard_times', '3')
         self._resetStatus()
+
+    def _defPersistent(self, key, value):
+        if key not in self._persistentData[self._identifier]:
+            self._persistentData[self._identifier][key] = value
 
     def connected(self, connection):
         if self._connection is not None:
@@ -71,6 +81,8 @@ class Robot(object):
     def _resetStatus(self):
         for key in self._notecmdKeys:
             self._notecmdValues[key] = ''
+        self._current_workState = -1
+        self._battery_changes_counter = 0
 
     def disconnected(self, name, connection):
         self._connection = None
@@ -110,10 +122,15 @@ class Robot(object):
                 self._persistentData.write(configfile)
             return 0, '"OK"'
 
+        if command == 'resetBattery':
+            self._resetBattery()
+            return 0, '"OK"'
+
         return self._connection.send_command(command, params)
 
 
     def statusUpdate(self, signame, sender, status):
+        """ Called whenever the status changes """
         if 'value' not in status:
             return
         value = status['value']
@@ -122,6 +139,51 @@ class Robot(object):
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = value[key]
+        if ('workState' in value) and ('battery' in value):
+            state = value['workState']
+            if (state != "5") and (state != "6"):
+                self._battery_changes_counter = 0
+            else:
+                if (self._current_workState == "6") and (state == "5"):
+                    # changed from "charged" to "charging"
+                    try:
+                        if int(value['battery']) <= self._getPersistentInteger('battery_guard_level', 80):
+                            self._battery_changes_counter += 1
+                            if self._battery_changes_counter >= self._getPersistentInteger('battery_guard_times', 3):
+                                if self._getPersistentBoolean('battery_guard_enabled', True):
+                                    self._resetBattery()
+                    except:
+                        pass
+            self._current_workState = state
+
+    def _getPersistentBoolean(self, key, default_value):
+        try:
+            return self._persistentData[self._identifier].getboolean(key, default_value)
+        except:
+            return default_value
+
+    def _getPersistentInteger(self, key, default_value):
+        try:
+            return self._persistentData[self._identifier].getint(key, default_value)
+        except:
+            return default_value
+
+
+    def _resetBattery(self):
+        self._battery_changes_counter = 0
+        self._connection.send_command('fan', {'speed': '0'})
+        self._connection.send_command('watertank', {'speed': '0'})
+        self._connection.send_command('clean', {})
+        self._connection.send_command('waitState', {'state': 'cleaning'})
+        self._connection.send_command('wait', {'seconds': '4'})
+        self._connection.send_command('stop', {})
+        self._connection.send_command('wait', {'seconds': '1'})
+        self._connection.send_command('fan', {'speed': self._persistentData[self._identifier]['fan']})
+        self._connection.send_command('watertank', {'speed': self._persistentData[self._identifier]['water']})
+        self._connection.send_command('waitState', {'state': 'stopped'})
+        self._connection.send_command('return', {})
+        self._connection.send_command('waitState', {'state': 'home'})
+        self._battery_keeper = 1
 
     def httpDataUpdate(self, data):
         for key in data:

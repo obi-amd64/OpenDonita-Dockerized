@@ -60,6 +60,7 @@ class RobotConnection(BaseServer):
         self._waiting_for_command = None
         multiplexer.timer.connect(self.timeout)
         self.statusUpdate = Signal("status", self)
+        self._state = 0
 
     def timeout(self, signame, caller, now):
         self._next_command()
@@ -70,10 +71,23 @@ class RobotConnection(BaseServer):
         if len(self._packet_queue) == 0:
             return
         command, params = self._packet_queue.pop(0)
-        self.send_command(command, params)
+        if command == 'waitState':
+            if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
+                self._next_command()
+            else:
+                self._packet_queue.insert(0, (command, params))
+            return
+        if command == 'waitFor':
+            print(f"WaitFor {params} ({datetime.datetime.now().timestamp()})")
+            if datetime.datetime.now().timestamp() >= params:
+                self._next_command()
+            else:
+                self._packet_queue.insert(0, (command, params))
+            return
+        self.send_command(command, params, True)
 
 
-    def send_command(self, command, params):
+    def send_command(self, command, params, from_next_command = False):
         if not self._identified:
             logging.error("Sent a command before the robot has identified itself")
             return 4, "Not identified"
@@ -81,6 +95,36 @@ class RobotConnection(BaseServer):
         wait_for_ack = True
         extraCommand = None
         extraCommand2 = None
+
+        if command == 'wait':
+            if 'seconds' not in params:
+                return 6, "Missing parameter (seconds)"
+            if self._waiting_for_command is not None:
+                self._packet_queue.append((command, params))
+            else:
+                self._packet_queue.insert(0, ('waitFor', (datetime.datetime.now().timestamp() + int(params['seconds']))))
+            return 0, "{}"
+
+        if command == 'waitState':
+            if 'state' not in params:
+                return 6, "Missing parameter (state)"
+            if params['state'] == 'cleaning':
+                state = '1'
+            elif params['state'] == 'stopped':
+                state = '2'
+            elif params['state'] == 'returning':
+                state = '4'
+            elif params['state'] == 'charging':
+                state = '5'
+            elif params['state'] == 'charged':
+                state = '6'
+            elif params['state'] == 'home':
+                state = 'home'
+            else:
+                return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
+            if (self._waiting_for_command is not None) or (self._state != state):
+                self._packet_queue.append((command, state))
+            return 0, "{}"
 
         if command == 'clean':
             logging.info("Starting to clean")
@@ -244,6 +288,7 @@ class RobotConnection(BaseServer):
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             self._send_payload(payload)
             self._log_payload(payload, "status")
+            self._next_command()
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
@@ -267,6 +312,7 @@ class RobotConnection(BaseServer):
             print("Error")
             self._log_payload(payload, "error")
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
+            self._packet_queue = []
             return True
         print("Unknown packet")
         print(header)
@@ -291,6 +337,10 @@ class RobotConnection(BaseServer):
         except:
             print(f'Payload is not a JSON file: "{payload}"')
             return
+
+        if ('value' in jsonPayload) and ('workState' in jsonPayload['value']):
+            self._state = jsonPayload['value']['workState']
+
         self.statusUpdate.emit(jsonPayload)
 
     def _check_header(self, header, value0, value1, value2, value4):

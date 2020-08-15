@@ -45,7 +45,6 @@ class HTTPConnection(BaseServer):
 
     def __init__(self, registered_pages, sock, address):
         super().__init__(sock)
-        print("New http connection")
         self._registered_pages = registered_pages
         self._address = address
         self.headers = None
@@ -91,13 +90,13 @@ class HTTPConnection(BaseServer):
                         length = len(page)
                 continue
             if path == page:
-                print(f'{self._URI}')
-                print(f'{self._data}')
+                #print(f'{self._URI}')
+                #print(f'{self._data}')
                 self._registered_pages[page](self)
                 return
         if jump is not None:
-            print(f'{self._URI}')
-            print(f'{self._data}')
+            #print(f'{self._URI}')
+            #print(f'{self._data}')
             self._registered_pages[jump](self)
             return
         self.send_answer("", 404, "NOT FOUND")

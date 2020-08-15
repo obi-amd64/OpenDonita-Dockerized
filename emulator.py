@@ -152,9 +152,11 @@ def check_command(data, command):
     return data['value']['transitCmd'] == command
 
 # mode 0: waiting for identification
-# mode 1: idle
+# mode 1: idle at base
 # mode 2: working
-# mode 3: returning to base
+# mode 3: stopped
+# mode 4: returning to base
+
 
 mode = 0
 counter_error = 0
@@ -163,6 +165,11 @@ voice = 2
 battery = 100
 bat_timeout = 0
 workstate = 6
+
+home_timeout = 0
+
+battery_error_counter_init = 20
+battery_error_counter = battery_error_counter_init
 
 def get_status():
     return '{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"'+str(workstate)+'","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"'+str(battery)+'","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}'
@@ -176,15 +183,23 @@ while True:
         if bat_timeout >= 5:
             bat_timeout = 0
             if workstate == 5:
-                battery += 1
-                if battery >= 100:
+                if battery_error_counter == 0:
                     battery = 100
                     workstate = 6
+                else:
+                    battery += 1
+                    if battery >= 100:
+                        battery = 100
+                        workstate = 6
             else:
-                battery -= 1
-                if workstate == 6:
-                    if battery <= 80:
-                        workstate = 5
+                if battery_error_counter == 0:
+                    battery = 60
+                    workstate = 5
+                else:
+                    battery -= 1
+                    if workstate == 6:
+                        if battery <= 80:
+                            workstate = 5
             send_packet(0x0018, 0x01, None, 0x00, get_status())
         timeout -= 1
         if timeout == 0:
@@ -198,6 +213,18 @@ while True:
         counter_error += 1
         if counter_error == 5:
             send_packet(0x0016, 0x01, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"noteCmd":"100","errorCode":"24"}}')
+        if home_timeout > 0:
+            home_timeout -= 1
+            if (home_timeout == 0):
+                mode = 1
+                workstate = 5
+                battery = 80
+                send_packet(0x0018, 0x0001, None, 0x00, get_status())
+
+        if workstate < 5:
+            battery_error_counter = battery_error_counter_init
+        if battery_error_counter > 0:
+            battery_error_counter -= 1
         continue
 
     timeout = max_timeout
@@ -210,18 +237,32 @@ while True:
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "100"):
-        if mode == 1:
+        if (mode == 1) or (mode == 3):
+            print("Clean")
+            send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
             mode = 2
+            workstate = 1
             counter_error = 0
             timeout_mode2 = 2
-            send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
             send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "102"):
-        if mode == 2:
-            mode = 1
+        if (mode == 2) or (mode == 4):
+            print("Stop")
             send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+            mode = 3
+            workstate = 2
+            send_packet(0x0018, 0x01, None, 0x00, get_status())
+        continue
+
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "104"):
+        if (mode == 2) or (mode == 3):
+            print("Return to home")
+            send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+            mode = 4
+            workstate = 4
+            home_timeout = 3
             send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
@@ -259,6 +300,11 @@ while True:
             print(f"Clean mode: {data['value']['mode']}")
         else:
             print("No MODE key in data")
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+        continue
+
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "131"):
+        print("Ask map")
         send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
