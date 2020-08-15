@@ -107,7 +107,10 @@ class Robot(object):
 
         if command == 'getProperty':
             if 'key' not in params:
-                return 6, '"Missing parameter (key)"'
+                data = {}
+                for key in self._persistentData[self._identifier]:
+                    data[key] = self._persistentData[self._identifier][key]
+                return 0, json.dumps(data)
             if params['key'] not in self._persistentData[self._identifier]:
                 return 8, f'"Key {params["key"]} does not exist in persistent data"'
             return 0, json.dumps({params["key"]: self._persistentData[self._identifier][params["key"]]})
