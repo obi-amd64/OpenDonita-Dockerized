@@ -25,6 +25,7 @@ class BaseServer(object):
         else:
             self._sock = sock
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._data = b""
         self._closed = False
         self.closedSignal = Signal("closed", self)
