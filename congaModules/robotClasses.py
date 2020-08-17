@@ -19,6 +19,7 @@ import datetime
 import json
 import struct
 import asyncio
+import types
 
 from congaModules.robotManager import robot_manager
 from congaModules.baseServer import BaseServer, BaseConnection
@@ -53,44 +54,71 @@ class RobotConnection(BaseConnection):
         self._timeout_handler = None
         self._next_command()
 
-    def _can_process_commands(self):
-        return (self._waiting_for_command is None) and (self._timeout_handler is None)
-
     def _next_command(self):
-        if not self._can_process_commands():
-            return
-        if len(self._packet_queue) == 0:
-            return
-        command, params = self._packet_queue.pop(0)
-        if command == 'waitState':
-            if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
-                self._next_command()
-            else:
-                self._packet_queue.insert(0, (command, params))
-            return
-        self.send_command(command, params)
+        while True:
+            if (self._waiting_for_command is not None) or (self._timeout_handler is not None):
+                print("Waiting for command")
+                return
+            if len(self._packet_queue) == 0:
+                return
 
+            command, params = self._packet_queue.pop(0)
+
+            if command == 'waitState':
+                if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
+                    continue
+                else:
+                    self._packet_queue.insert(0, (command, params))
+                return
+            if command == 'wait':
+                self._timeout_handler = self._loop.call_later(params, self._timeout)
+                return
+
+            self._packet_id += 1
+            if params.wait_for_ack:
+                self._waiting_for_command = self._packet_id
+            data = '{"cmd":0,"control":{"authCode":"'
+            data += self._authCode
+            data += '","deviceIp":"'
+            data += self._deviceIP
+            data += '","devicePort":"'
+            data += self._devicePort
+            data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
+            if params.extraCommand is not None:
+                data += params.extraCommand+','
+            data += '"transitCmd":"'
+            data += command
+            data += '"'
+            if params.extraCommand2 is not None:
+                data += ','+params.extraCommand2
+            data += '}}\n'
+            print(f"Sending command {data}")
+            self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+            if params.wait_for_ack:
+                return
 
     def send_command(self, command, params):
         if not self._identified:
             logging.error("Sent a command before the robot has identified itself")
             return 4, "Not identified"
 
-        wait_for_ack = True
-        extraCommand = None
-        extraCommand2 = None
+        parameters = types.SimpleNamespace()
+        parameters.wait_for_ack = True
+        parameters.extraCommand = None
+        parameters.extraCommand2 = None
 
         if command == 'wait':
             if 'seconds' not in params:
                 return 6, "Missing parameter (seconds)"
-            if self._can_process_commands():
-                seconds = int(params['seconds'])
-                self._timeout_handler = self._loop.call_later(seconds, self._timeout)
-            else:
-                self._packet_queue.append((command, params))
+            try:
+                seconds = float(params['seconds'])
+            except:
+                return 7, "Invalid value for seconds"
+            self._packet_queue.append((command, seconds))
+            self._next_command()
             return 0, "{}"
 
-        if command == 'waitState':
+        elif command == 'waitState':
             if 'state' not in params:
                 return 6, "Missing parameter (state)"
             if params['state'] == 'cleaning':
@@ -107,13 +135,11 @@ class RobotConnection(BaseConnection):
                 state = 'home'
             else:
                 return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
-            if (not self._can_process_commands()) or (self._state != state):
-                self._packet_queue.append((command, state))
-            else:
-                self._next_command()
+            self._packet_queue.append((command, state))
+            self._next_command()
             return 0, "{}"
 
-        if command == 'clean':
+        elif command == 'clean':
             logging.info("Starting to clean")
             ncommand = '100'
         elif command == 'stop':
@@ -141,13 +167,13 @@ class RobotConnection(BaseConnection):
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
             if params['speed'] == '0':
-                extraCommand = '"fan":"1"' # OFF
+                parameters.extraCommand = '"fan":"1"' # OFF
             elif params['speed'] == '1':
-                extraCommand = '"fan":"4"' # ECO
+                parameters.extraCommand = '"fan":"4"' # ECO
             elif params['speed'] == '2':
-                extraCommand = '"fan":"2"' # NORMAL
+                parameters.extraCommand = '"fan":"2"' # NORMAL
             elif params['speed'] == '3':
-                extraCommand = '"fan":"3"' # TURBO
+                parameters.extraCommand = '"fan":"3"' # TURBO
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting fan to {params['speed']}")
@@ -156,13 +182,13 @@ class RobotConnection(BaseConnection):
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
             if params['speed'] == '0':
-                extraCommand2 = '"waterTank":"255"' # OFF
+                parameters.extraCommand2 = '"waterTank":"255"' # OFF
             elif params['speed'] == '1':
-                extraCommand2 = '"waterTank":"60"' # SMALL
+                parameters.extraCommand2 = '"waterTank":"60"' # SMALL
             elif params['speed'] == '2':
-                extraCommand2 = '"waterTank":"40"' # NORMAL
+                parameters.extraCommand2 = '"waterTank":"40"' # NORMAL
             elif params['speed'] == '3':
-                extraCommand2 = '"waterTank":"20"' # FAST
+                parameters.extraCommand2 = '"waterTank":"20"' # FAST
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting water to {params['speed']}")
@@ -171,63 +197,37 @@ class RobotConnection(BaseConnection):
             if 'type' not in params:
                 return 6, "Missing parameter (type)"
             if params['type'] == 'auto':
-                extraCommand = '"mode":"11"'
+                parameters.extraCommand = '"mode":"11"'
             elif params['type'] == 'gyro':
-                extraCommand = '"mode":"1"'
+                parameters.extraCommand = '"mode":"1"'
             elif params['type'] == 'random':
-                extraCommand = '"mode":"3"'
+                parameters.extraCommand = '"mode":"3"'
             elif params['type'] == 'borders':
-                extraCommand = '"mode":"4"'
+                parameters.extraCommand = '"mode":"4"'
             elif params['type'] == 'area':
-                extraCommand = '"mode":"6"'
+                parameters.extraCommand = '"mode":"6"'
             elif params['type'] == 'x2':
-                extraCommand = '"mode":"8"'
+                parameters.extraCommand = '"mode":"8"'
             elif params['type'] == 'scrub':
-                extraCommand = '"mode":"10"'
+                parameters.extraCommand = '"mode":"10"'
             else:
                 return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
             logging.info(f"Setting mode to {params['type']}")
         elif command == 'notifyConnection': # seems to be sent whenever the tablet connects to the server
             ncommand = '400'
-            wait_for_ack = False
+            parameters.wait_for_ack = False
             logging.info("Web client opened")
         elif command == 'askStatus': # seems to ask the robot to send a Status packet
             ncommand = '98'
-            wait_for_ack = False
+            parameters.wait_for_ack = False
             logging.info("Asking status")
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
 
-        if not self._can_process_commands():
-            print("waiting for command")
-            self._packet_queue.append((command, params))
-            return 0, "{}"
-
-        self._packet_id += 1
-        if wait_for_ack:
-            self._waiting_for_command = self._packet_id
-        data = '{"cmd":0,"control":{"authCode":"'
-        data += self._authCode
-        data += '","deviceIp":"'
-        data += self._deviceIP
-        data += '","devicePort":"'
-        data += self._devicePort
-        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
-        if extraCommand is not None:
-            data += extraCommand+','
-        data += '"transitCmd":"'
-        data += ncommand
-        data += '"'
-        if extraCommand2 is not None:
-            data += ','+extraCommand2
-        data += '}}\n'
-        print(f"Sending command {data}")
-        self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-        if not wait_for_ack:
-            self._next_command()
+        self._packet_queue.append((ncommand, parameters))
+        self._next_command()
         return 0, "{}"
-
 
     def close(self):
         print("Robot disconnected")
