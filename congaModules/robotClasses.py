@@ -49,24 +49,21 @@ class RobotConnection(BaseConnection):
         self.statusUpdate = Signal("status", self)
         self._state = 0
 
-    def timeout(self):
+    def _timeout(self):
         self._timeout_handler = None
-        self._next_command(True)
+        self._next_command()
 
-    def _next_command(self, timeout = False):
-        if self._waiting_for_command is not None:
+    def _can_process_commands(self):
+        return (self._waiting_for_command is None) and (self._timeout_handler is None)
+
+    def _next_command(self):
+        if not self._can_process_commands():
             return
         if len(self._packet_queue) == 0:
             return
         command, params = self._packet_queue.pop(0)
         if command == 'waitState':
             if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
-                self._next_command()
-            else:
-                self._packet_queue.insert(0, (command, params))
-            return
-        if command == 'waitFor':
-            if timeout:
                 self._next_command()
             else:
                 self._packet_queue.insert(0, (command, params))
@@ -86,12 +83,11 @@ class RobotConnection(BaseConnection):
         if command == 'wait':
             if 'seconds' not in params:
                 return 6, "Missing parameter (seconds)"
-            if self._waiting_for_command is not None:
-                self._packet_queue.append((command, params))
-            else:
+            if self._can_process_commands():
                 seconds = int(params['seconds'])
-                self._packet_queue.insert(0, ('waitFor', None))
-                self._timeout_handler = self._loop.call_later(seconds, self.timeout)
+                self._timeout_handler = self._loop.call_later(seconds, self._timeout)
+            else:
+                self._packet_queue.append((command, params))
             return 0, "{}"
 
         if command == 'waitState':
@@ -111,7 +107,7 @@ class RobotConnection(BaseConnection):
                 state = 'home'
             else:
                 return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
-            if (self._waiting_for_command is not None) or (self._state != state):
+            if (not self._can_process_commands()) or (self._state != state):
                 self._packet_queue.append((command, state))
             else:
                 self._next_command()
@@ -203,7 +199,7 @@ class RobotConnection(BaseConnection):
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
 
-        if self._waiting_for_command is not None:
+        if not self._can_process_commands():
             print("waiting for command")
             self._packet_queue.append((command, params))
             return 0, "{}"

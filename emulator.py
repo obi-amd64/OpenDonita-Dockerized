@@ -118,9 +118,9 @@ def receive_packet():
     if len(received_data) < header[0]:
         return None, ""
     data = received_data[20:header[0]].decode('latin1')
-    print("Received", end="")
-    print_header(received_data[:20])
-    print(f"\n{data}\n")
+    #print("Received", end="")
+    #print_header(received_data[:20])
+    #print(f"\n{data}\n")
     received_data = received_data[header[0]:]
     if len(data) == 0:
         return header, None
