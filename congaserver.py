@@ -23,9 +23,9 @@ from urllib.parse import parse_qs
 import random
 import os
 import logging
+import asyncio
 
 from congaModules.robotManager import robot_manager
-from congaModules.multiplexer import multiplexer
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
 
@@ -192,11 +192,16 @@ else:
     port_http = 80
     port_bona = 20008
 
-http_server.set_pages(registered_pages)
-http_server.set_port(port_http)
-robot_server.set_port(port_bona)
+loop = asyncio.get_event_loop()
 
-multiplexer.add_socket(http_server)
-multiplexer.add_socket(robot_server)
+http_server.configure(registered_pages, loop, port_http)
+robot_server.configure(loop, port_bona)
 
-multiplexer.run()
+try:
+    loop.run_forever()
+except:
+    pass
+
+robot_server.close()
+http_server.close()
+loop.close()

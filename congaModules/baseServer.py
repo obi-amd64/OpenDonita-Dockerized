@@ -16,24 +16,37 @@
 
 import socket
 import logging
+import asyncio
 from congaModules.observer import Signal
 
 class BaseServer(object):
-    def __init__(self, sock = None):
-        if sock is None:
-            self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        else:
-            self._sock = sock
-        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+    def __init__(self):
+        super().__init__()
+        self._loop = None
+        self._server = None
+
+    def configure(self, loop, port, address = ''):
+        self._loop = loop
+        coro = asyncio.start_server(self._handle, address, port, loop=loop)
+        self._server = loop.run_until_complete(coro)
+
+    def close(self):
+        if self._server is not None:
+            self._server.close()
+            self._loop.run_until_complete(self._server.wait_closed())
+
+    async def _handle(self, reader, writer):
+        pass
+
+
+class BaseConnection(object):
+    def __init__(self, reader, writer):
+        self._reader = reader
+        self._writer = writer
         self._data = b""
         self._closed = False
         self.closedSignal = Signal("closed", self)
-
-    def added(self):
-        pass
-
-    def fileno(self):
-        return self._sock.fileno()
 
     def new_data(self):
         """ Called every time new data is added to self._data
@@ -50,33 +63,24 @@ class BaseServer(object):
     def close(self):
         """ Called when the socket is closed and the class will be destroyed """
         if not self._closed:
-            try:
-                self._sock.shutdown(socket.SHUT_RDWR)
-            except:
-                pass
-            try:
-                self._sock.close()
-            except:
-                pass
+            # do close connection
+            self._writer.close()
             self._closed = True
             self.closedSignal.emit()
 
-    def data_available(self):
+    async def run(self):
         """ Called whenever there is data to be read in the socket.
             Overwrite only to detect when there are new connections """
-        try:
-            data = self._sock.recv(65536)
-        except Error as e:
-            self.close()
-            print(f"Connection lost {self.fileno()}")
-            print(e)
-            return
-        if len(data) > 0:
-            self._data += data
-            while True:
-                if not self.new_data():
-                    break
-        else:
-            # socket closed
-            self.close()
+
+        while True:
+            data = await self._reader.read(65536)
+            if len(data) > 0:
+                self._data += data
+                while True:
+                    if not self.new_data():
+                        break
+            else:
+                # socket closed
+                self.close()
+                break
 

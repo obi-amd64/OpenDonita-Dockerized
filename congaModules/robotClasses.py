@@ -18,36 +18,23 @@ import logging
 import datetime
 import json
 import struct
+import asyncio
 
 from congaModules.robotManager import robot_manager
-from congaModules.baseServer import BaseServer
-from congaModules.multiplexer import multiplexer
+from congaModules.baseServer import BaseServer, BaseConnection
 from congaModules.observer import Signal
 
 class RobotServer(BaseServer):
-    def __init__(self):
-        super().__init__()
-        self._port = 20008
 
-    def set_port(self, port = 20008):
-        self._port = port
+    async def _handle(self, reader, writer):
+        connection = RobotConnection(self._loop, reader, writer)
+        await connection.run()
 
-    def added(self):
-        self._sock.bind(('', self._port))
-        self._sock.listen(10)
-
-    def data_available(self):
-        # there is a new connection
-        print("Robot connected")
-        newsock, address = self._sock.accept()
-        return RobotConnection(newsock, address)
-
-
-class RobotConnection(BaseServer):
-    def __init__(self, sock, address):
-        super().__init__(sock)
+class RobotConnection(BaseConnection):
+    def __init__(self, loop, reader, writer):
+        super().__init__(reader, writer)
         logging.info("Connected a new robot")
-        self._address = address
+        self._loop = loop
         self._identified = False
         self._packet_queue = []
         self._packet_id = 1
@@ -58,14 +45,15 @@ class RobotConnection(BaseServer):
         self._deviceIP = None
         self._devicePort = None
         self._waiting_for_command = None
-        multiplexer.timer.connect(self.timeout)
         self.statusUpdate = Signal("status", self)
         self._state = 0
 
-    def timeout(self, signame, caller, now):
-        self._next_command()
+    async def timeout(self, t):
+        result = await asyncio.sleep(t)
+        if not self._closed:
+            self._next_command(True)
 
-    def _next_command(self):
+    def _next_command(self, timeout = False):
         if self._waiting_for_command is not None:
             return
         if len(self._packet_queue) == 0:
@@ -79,15 +67,15 @@ class RobotConnection(BaseServer):
             return
         if command == 'waitFor':
             print(f"WaitFor {params} ({datetime.datetime.now().timestamp()})")
-            if datetime.datetime.now().timestamp() >= params:
+            if timeout or (datetime.datetime.now().timestamp() >= params):
                 self._next_command()
             else:
                 self._packet_queue.insert(0, (command, params))
             return
-        self.send_command(command, params, True)
+        self.send_command(command, params)
 
 
-    def send_command(self, command, params, from_next_command = False):
+    def send_command(self, command, params):
         if not self._identified:
             logging.error("Sent a command before the robot has identified itself")
             return 4, "Not identified"
@@ -102,7 +90,9 @@ class RobotConnection(BaseServer):
             if self._waiting_for_command is not None:
                 self._packet_queue.append((command, params))
             else:
-                self._packet_queue.insert(0, ('waitFor', (datetime.datetime.now().timestamp() + int(params['seconds']))))
+                seconds = int(params['seconds'])
+                self._packet_queue.insert(0, ('waitFor', (datetime.datetime.now().timestamp() + seconds)))
+                self._loop.create_task(self.timeout(seconds))
             return 0, "{}"
 
         if command == 'waitState':
@@ -243,10 +233,9 @@ class RobotConnection(BaseServer):
 
 
     def close(self):
-        print("Robot disconnected")
-        multiplexer.timer.disconnect(self.timeout)
-        super().close()
         self._identified = False
+        print("Robot disconnected")
+        super().close()
 
 
     def new_data(self):
@@ -358,7 +347,7 @@ class RobotConnection(BaseServer):
         if isinstance(data, str):
             data = data.encode('utf8')
         header = bytearray(struct.pack("<LLLLL", 20 + len(data), value1, value2, packet_id, value3))
-        self._sock.send(header + data)
+        self._writer.write(header + data)
         # data2 = struct.unpack("BBBBBBBBBBBBBBBBBBBB", header)
         # c = 0
         # for n in data2:

@@ -15,38 +15,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import json
+import asyncio
 from urllib.parse import parse_qs
 
-from congaModules.baseServer import BaseServer
+from congaModules.baseServer import BaseServer, BaseConnection
 
 class HTTPServer(BaseServer):
     def __init__(self):
         super().__init__()
-        self._registered_pages = {}
-        self._port = 80
+        self._registered_pages = None
 
-    def set_pages(self, registered_pages):
+    def configure(self, registered_pages, loop, port = 80):
         self._registered_pages = registered_pages
+        super().configure(loop, port)
 
-    def set_port(self, port = 80):
-        self._port = port
+    async def _handle(self, reader, writer):
+        connection = HTTPConnection(reader, writer, self._registered_pages)
+        await connection.run()
 
-    def added(self):
-        self._sock.bind(('', self._port))
-        self._sock.listen(10)
 
-    def data_available(self):
-        # there is a new connection
-        newsock, address = self._sock.accept()
-        return HTTPConnection(self._registered_pages, newsock, address)
-
-class HTTPConnection(BaseServer):
+class HTTPConnection(BaseConnection):
     """ Manages an specific connection to the HTTP server """
 
-    def __init__(self, registered_pages, sock, address):
-        super().__init__(sock)
+    def __init__(self, reader, writer, registered_pages):
+        super().__init__(reader, writer)
         self._registered_pages = registered_pages
-        self._address = address
         self.headers = None
         self.protocol = 'HTTP/1.0'
         self._headers_answer = b""
@@ -90,13 +83,9 @@ class HTTPConnection(BaseServer):
                         length = len(page)
                 continue
             if path == page:
-                #print(f'{self._URI}')
-                #print(f'{self._data}')
                 self._registered_pages[page](self)
                 return
         if jump is not None:
-            #print(f'{self._URI}')
-            #print(f'{self._data}')
             self._registered_pages[jump](self)
             return
         self.send_answer("", 404, "NOT FOUND")
@@ -122,7 +111,7 @@ class HTTPConnection(BaseServer):
         else:
             cmd = data
         self._answer_sent = True
-        self._sock.send(cmd)
+        self._writer.write(cmd)
 
     def get_data(self):
         return self._data
@@ -163,6 +152,5 @@ class HTTPConnection(BaseServer):
         chunk = f'{hex(len(text))[2:]}\r\n{text}\r\n'
         self.send_answer(chunk)
         self.send_answer('0\r\n\r\n')
-
 
 http_server = HTTPServer()
