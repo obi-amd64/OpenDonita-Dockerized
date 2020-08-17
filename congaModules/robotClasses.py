@@ -45,13 +45,13 @@ class RobotConnection(BaseConnection):
         self._deviceIP = None
         self._devicePort = None
         self._waiting_for_command = None
+        self._timeout_handler = None
         self.statusUpdate = Signal("status", self)
         self._state = 0
 
-    async def timeout(self, t):
-        result = await asyncio.sleep(t)
-        if not self._closed:
-            self._next_command(True)
+    def timeout(self):
+        self._timeout_handler = None
+        self._next_command(True)
 
     def _next_command(self, timeout = False):
         if self._waiting_for_command is not None:
@@ -66,8 +66,7 @@ class RobotConnection(BaseConnection):
                 self._packet_queue.insert(0, (command, params))
             return
         if command == 'waitFor':
-            print(f"WaitFor {params} ({datetime.datetime.now().timestamp()})")
-            if timeout or (datetime.datetime.now().timestamp() >= params):
+            if timeout:
                 self._next_command()
             else:
                 self._packet_queue.insert(0, (command, params))
@@ -91,8 +90,8 @@ class RobotConnection(BaseConnection):
                 self._packet_queue.append((command, params))
             else:
                 seconds = int(params['seconds'])
-                self._packet_queue.insert(0, ('waitFor', (datetime.datetime.now().timestamp() + seconds)))
-                self._loop.create_task(self.timeout(seconds))
+                self._packet_queue.insert(0, ('waitFor', None))
+                self._timeout_handler = self._loop.call_later(seconds, self.timeout)
             return 0, "{}"
 
         if command == 'waitState':
@@ -114,6 +113,8 @@ class RobotConnection(BaseConnection):
                 return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
             if (self._waiting_for_command is not None) or (self._state != state):
                 self._packet_queue.append((command, state))
+            else:
+                self._next_command()
             return 0, "{}"
 
         if command == 'clean':
@@ -233,8 +234,11 @@ class RobotConnection(BaseConnection):
 
 
     def close(self):
-        self._identified = False
         print("Robot disconnected")
+        self._identified = False
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
         super().close()
 
 
