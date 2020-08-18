@@ -286,9 +286,9 @@ class RobotConnection(BaseConnection):
                     self._send_payload(payload)
                     self._waiting_for_command = None
                     print("ACK fine")
-                    self._next_command()
                 else:
                     print("ACK error")
+                self._next_command()
             return True
         # Map
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):

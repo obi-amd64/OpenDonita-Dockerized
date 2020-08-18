@@ -68,8 +68,9 @@ class PowerWater {
 
         $("#startstop").click(function () {
             if (this._allowStart) {
-                this._read_defaults(true);
-                $.getJSON(`robot/${this._robot}/clean`);
+                this._read_defaults(true, function() {
+                    $.getJSON(`robot/${this._robot}/clean`);
+                }.bind(this));
             } else if (this._allowStop) {
                 $.getJSON(`robot/${this._robot}/stop`);
             }
@@ -99,17 +100,18 @@ class PowerWater {
         }.bind(this));
     }
 
-    _read_defaults(update) {
+    _read_defaults(update, cb) {
         this._read_value('fan', function(value) {
             this._set_fan(value, update);
-        }.bind(this));
-
-        this._read_value('water', function(value) {
-            this._set_water(value, update);
-        }.bind(this));
-
-        this._read_value('mode', function(value) {
-            this._set_mode(value, update);
+            this._read_value('water', function(value) {
+                this._set_water(value, update);
+                this._read_value('mode', function(value) {
+                    this._set_mode(value, update);
+                    if (cb) {
+                        cb();
+                    }
+                }.bind(this));
+            }.bind(this));
         }.bind(this));
     }
 
