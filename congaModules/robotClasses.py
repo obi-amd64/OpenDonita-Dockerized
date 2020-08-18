@@ -51,15 +51,16 @@ class RobotConnection(BaseConnection):
         self._state = 0
 
     def _timeout(self):
+        print("Timeout")
         self._timeout_handler = None
         self._next_command()
 
     def _next_command(self):
         while True:
-            if (self._waiting_for_command is not None) or (self._timeout_handler is not None):
-                print("Waiting for command")
-                return
-            if len(self._packet_queue) == 0:
+            if ((self._waiting_for_command is not None) or
+                (self._timeout_handler is not None) or
+                (len(self._packet_queue) == 0)):
+                print(f"Waiting for command {self._packet_queue}; {self._waiting_for_command}; {self._timeout_handler}")
                 return
 
             command, params = self._packet_queue.pop(0)
@@ -68,15 +69,15 @@ class RobotConnection(BaseConnection):
                 if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
                     continue
                 else:
+                    print(f"Waiting for state {params}")
                     self._packet_queue.insert(0, (command, params))
                 return
             if command == 'wait':
+                print(f"Waiting {params} seconds")
                 self._timeout_handler = self._loop.call_later(params, self._timeout)
                 return
 
             self._packet_id += 1
-            if params.wait_for_ack:
-                self._waiting_for_command = self._packet_id
             data = '{"cmd":0,"control":{"authCode":"'
             data += self._authCode
             data += '","deviceIp":"'
@@ -95,6 +96,7 @@ class RobotConnection(BaseConnection):
             print(f"Sending command {data}")
             self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
             if params.wait_for_ack:
+                self._waiting_for_command = self._packet_id
                 return
 
     def send_command(self, command, params):
