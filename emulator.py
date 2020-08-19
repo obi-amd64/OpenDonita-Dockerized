@@ -269,14 +269,16 @@ while True:
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "123"):
         print("Sound ACTIVE")
-        voice = 2
         send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+        voice = 2
+        send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "125"):
         print("Sound INACTIVE")
-        voice = 1
         send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+        voice = 1
+        send_packet(0x0018, 0x01, None, 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "110"):

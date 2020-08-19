@@ -8,14 +8,13 @@
     <script src="code.js"></script>
 </head>
 
-<body>
+<body id="body_settings">
     <div id="main">
         <div class="battery_common battery_top"></div>
         <div class="battery battery_common battery_body" id="battery"><div id="battery_level" class="battery_level"></div><img id="charging" class="charging" src="charging.svg"></div>
         <div class="buttons">
             <img class="button home" id="home" src="home_disabled.svg">
             <img class="button startstop" id="startstop" src="play_enabled.svg">
-            <img class="button audio" id="audio" src="speaker_enabled.svg">
             <img class="button settings" id="settings" src="settings.svg">
         </div>
     </div>
@@ -26,32 +25,29 @@
         <img id="nocongapic" src="noconga.svg">
     </div>
     <div id="div_settings">
-        <table id="table_settings">
-            <tr id="settings_row1">
-                <td id="fan_0"><img id="pic_fan_0" src="fan_0.svg"></td>
-                <td id="fan_1"><img id="pic_fan_1" src="fan_1.svg"></td>
-                <td id="fan_2"><img id="pic_fan_2" src="fan_2.svg"></td>
-                <td id="fan_3"><img id="pic_fan_3" src="fan_3.svg"></td>
-            </tr>
-            <tr id="settings_row2">
-                <td id="water_0"><img id="pic_water_0" src="water_0.svg"></td>
-                <td id="water_1"><img id="pic_water_1" src="water_1.svg"></td>
-                <td id="water_2"><img id="pic_water_2" src="water_2.svg"></td>
-                <td id="water_3"><img id="pic_water_3" src="water_3.svg"></td>
-            </tr>
-            <tr id="settings_row3">
-                <td id="mode_0"><img id="pic_mode_0" src="mode_auto.svg"></td>
-                <td id="mode_1"><img id="pic_mode_1" src="mode_gyro.svg"></td>
-                <td id="mode_2"><img id="pic_mode_2" src="mode_random.svg"></td>
-                <td id="mode_3"><img id="pic_mode_3" src="mode_edge.svg"></td>
-            </tr>
-            <tr id="settings_row4">
-                <td id="mode_4"><img id="pic_mode_4" src="mode_area.svg"></td>
-                <td id="mode_5"><img id="pic_mode_5" src="mode_deep.svg"></td>
-                <td id="mode_6"><img id="pic_mode_6" src="mode_scrubbing.svg"></td>
-                <td id="back"><img id="pic_back" src="goback.svg"></td>
-            </tr>
-        </table>
+        <div id="div_settings2">
+            <span class="settings_button" id="fan_0"><img src="fan_0.svg"></span>
+            <span class="settings_button" id="fan_1"><img src="fan_1.svg"></span>
+            <span class="settings_button" id="fan_2"><img src="fan_2.svg"></span>
+            <span class="settings_button" id="fan_3"><img src="fan_3.svg"></span>
+
+            <span class="settings_button" id="water_0"><img src="water_0.svg"></span>
+            <span class="settings_button" id="water_1"><img src="water_1.svg"></span>
+            <span class="settings_button" id="water_2"><img src="water_2.svg"></span>
+            <span class="settings_button" id="water_3"><img src="water_3.svg"></span>
+
+            <span class="settings_button" id="mode_0"><img src="mode_auto.svg"></span>
+            <span class="settings_button" id="mode_1"><img src="mode_gyro.svg"></span>
+            <span class="settings_button" id="mode_2"><img src="mode_random.svg"></span>
+            <span class="settings_button" id="mode_3"><img src="mode_edge.svg"></span>
+            <span class="settings_button" id="mode_4"><img src="mode_area.svg"></span>
+            <span class="settings_button" id="mode_5"><img src="mode_deep.svg"></span>
+            <span class="settings_button" id="mode_6"><img src="mode_scrubbing.svg"></span>
+
+            <span class="settings_button" id="audio"><img id="audio_img" src="speaker_enabled.svg"></span>
+
+            <span class="settings_button ret_button" id="back"><img src="goback.svg"></span>
+        </div>
     </div>
 </body>
 

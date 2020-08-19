@@ -48,6 +48,7 @@ class RobotConnection(BaseConnection):
         self._waiting_for_command = None
         self._timeout_handler = None
         self.statusUpdate = Signal("status", self)
+        self._last_command = None
         self._state = 0
 
     def _timeout(self):
@@ -60,7 +61,7 @@ class RobotConnection(BaseConnection):
             if ((self._waiting_for_command is not None) or
                 (self._timeout_handler is not None) or
                 (len(self._packet_queue) == 0)):
-                print(f"Waiting for command {self._packet_queue}; {self._waiting_for_command}; {self._timeout_handler}")
+                print(f"Waiting for command {self._packet_queue}\n\n{self._last_command}; {self._waiting_for_command}; {self._timeout_handler}")
                 return
 
             command, params = self._packet_queue.pop(0)
@@ -95,6 +96,7 @@ class RobotConnection(BaseConnection):
             data += '}}\n'
             print(f"Sending command {data}")
             self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+            self._last_command = f"{command}; {params}"
             if params.wait_for_ack:
                 self._waiting_for_command = self._packet_id
                 return

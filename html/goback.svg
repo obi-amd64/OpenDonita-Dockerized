@@ -7,13 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="goback.svg"
-   viewBox="0 0 484.1243 549.74207"
-   height="549.74207"
-   width="484.1243"
+   version="1.1"
    id="svg3381"
-   version="1.1">
+   width="1000"
+   height="1000"
+   viewBox="0 0 1000 1000"
+   sodipodi:docname="goback.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <metadata
      id="metadata3387">
     <rdf:RDF>
@@ -29,39 +29,40 @@
   <defs
      id="defs3385" />
   <sodipodi:namedview
-     inkscape:current-layer="g3389"
-     inkscape:window-maximized="1"
-     inkscape:window-y="0"
-     inkscape:window-x="0"
-     inkscape:cy="264.19263"
-     inkscape:cx="94.759499"
-     inkscape:zoom="1.3867925"
-     fit-margin-bottom="50"
-     fit-margin-right="50"
-     fit-margin-left="50"
-     fit-margin-top="50"
-     lock-margins="true"
-     showgrid="false"
-     id="namedview3383"
-     inkscape:window-height="1016"
-     inkscape:window-width="1920"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
+     inkscape:document-rotation="0"
+     pagecolor="#ffffff"
      bordercolor="#666666"
-     pagecolor="#ffffff" />
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview3383"
+     showgrid="false"
+     lock-margins="true"
+     fit-margin-top="50"
+     fit-margin-left="50"
+     fit-margin-right="50"
+     fit-margin-bottom="50"
+     inkscape:zoom="0.777"
+     inkscape:cx="500"
+     inkscape:cy="500"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g3389" />
   <g
-     transform="translate(-16.728254,19.011793)"
-     id="g3389"
+     inkscape:groupmode="layer"
      inkscape:label="Image"
-     inkscape:groupmode="layer">
+     id="g3389"
+     transform="translate(-16.728254,19.011793)">
     <path
-       sodipodi:nodetypes="ccccccc"
+       style="fill:#63399e;fill-opacity:1;stroke:#663399;stroke-width:2.02105px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 520.62228,938.872 C 809.05885,919.34573 868.95267,458.27532 516.69996,424.09012 L 516.22705,551.0296 129.60453,291.72478 515.48436,32.882861 V 164.17966 c 548.24984,25.07103 482.83127,782.22959 5.13792,774.69234 z"
        id="path3954"
-       d="m 261.09866,480.20265 c 142.71636,-9.66146 172.3514,-237.79582 -1.94074,-254.71041 L 258.92393,288.30099 67.625857,159.99881 258.55645,31.925668 V 96.89039 c 271.27009,12.40497 238.90148,387.04164 2.54221,383.31226 z"
-       style="fill:#63399e;fill-opacity:1;stroke:#663399;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+       sodipodi:nodetypes="ccccccc" />
   </g>
 </svg>

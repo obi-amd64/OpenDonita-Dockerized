@@ -42,11 +42,10 @@ class PowerWater {
         }
 
         $("#audio").click(function () {
-            let status;
             if (this._audio) {
-                status = 0;
+                var status = 0;
             } else {
-                status = 1;
+                var status = 1;
             }
             $.getJSON(`robot/all/sound?status=${status}`);
         }.bind(this));
@@ -134,7 +133,7 @@ class PowerWater {
             } else {
                 this._audio = false;
             }
-            this._set_audio(false);
+            this._set_audio();
 
             // mode
             let mode = received['value']['workState'];
@@ -193,21 +192,18 @@ class PowerWater {
     _set_sizes() {
         let width = $("#div_settings").width();
         let height = $("#div_settings").height();
-        let minimum = width;
         if (width > height) {
-            minimum = height;
+            var top = 1;
+            var bottom = 1;
+            var left = Math.floor(width - height) / 2;
+            var right = Math.ceil(width - height) / 2;
+        } else {
+            var left = 1;
+            var right = 1;
+            var top = Math.floor(height - width) / 2;
+            var bottom = Math.ceil(height - width) / 2;
         }
-
-        let w = minimum / 4;
-        w = w * 0.95
-        for(let x=0; x<4; x++) {
-            this._set_block_size(`fan_${x}`, w, w);
-            this._set_block_size(`water_${x}`, w, w);
-        }
-        for(let x=0; x<7; x++) {
-            this._set_block_size(`mode_${x}`, w, w);
-        }
-        this._set_block_size(`back`, w, w);
+        $("#div_settings2").css("padding", `${top}px ${right}px ${bottom}px ${left}px`);
 
         let canvas = document.getElementById("mapcanvas");
         canvas.width = $("#map").width();
@@ -381,19 +377,14 @@ class PowerWater {
     _set_block_size(name, w, h) {
         $(`#${name}`).width(w);
         $(`#${name}`).height(h);
-        $(`#pic_${name}`).width(w);
-        $(`#pic_${name}`).height(h);
+        console.log(`tamano ${w}x${h}`);
     }
 
-    _set_audio(update) {
-        let status;
+    _set_audio() {
         if (this._audio) {
-            $("#audio").attr("src", "speaker_enabled.svg");
+            $("#audio_img").attr("src", "speaker_enabled.svg");
         } else {
-            $("#audio").attr("src", "speaker_disabled.svg");
-        }
-        if (update) {
-            $.getJSON(`robot/all/sound?status=${status}`);
+            $("#audio_img").attr("src", "speaker_disabled.svg");
         }
     }
 
