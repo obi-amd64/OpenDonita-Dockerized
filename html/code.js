@@ -17,65 +17,67 @@ class PowerWater {
         this._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"];
         this._last_map = "";
         this._last_track = "";
+        this._rotation = 0;
 
-        $(window).resize(function() {
+        $(window).resize(() => {
             this._last_map = "";
             this._last_track = "";
             this._set_sizes();
-        }.bind(this));
+        });
 
         for(let x=0; x<4; x++) {
             let name = `#fan_${x}`;
-            $(name).click(function() {
+            $(name).click(() => {
                 this._set_fan(x, true);
-            }.bind(this));
+            });
             name = `#water_${x}`;
-            $(name).click(function() {
+            $(name).click(() => {
                 this._set_water(x, true);
-            }.bind(this));
+            });
         }
         for(let x=0; x<7; x++) {
             let name = `#mode_${x}`;
-            $(name).click(function() {
+            $(name).click(() => {
                 this._set_mode(x, true);
-            }.bind(this));
+            });
         }
 
-        $("#audio").click(function () {
+        $("#audio").click(() => {
             if (this._audio) {
                 var status = 0;
             } else {
                 var status = 1;
             }
             $.getJSON(`robot/all/sound?status=${status}`);
-        }.bind(this));
+        });
 
-        $("#back").click(function () {
+        $("#back").click(() => {
             $("#div_settings").hide();
         });
 
-        $("#settings").click(function () {
+        $("#settings").click(() => {
+            this._read_defaults();
             $("#div_settings").show();
         });
         $("#div_settings").hide();
 
-        $("#home").click(function () {
+        $("#home").click(() => {
             if (this._allowHome) {
                 $.getJSON(`robot/${this._robot}/return`);
             }
-        }.bind(this));
+        });
 
-        $("#startstop").click(function () {
+        $("#startstop").click(() => {
             if (this._allowStart) {
-                this._read_defaults(true, function() {
+                this._read_defaults(() => {
                     $.getJSON(`robot/${this._robot}/clean`);
-                }.bind(this));
+                });
             } else if (this._allowStop) {
                 $.getJSON(`robot/${this._robot}/stop`);
             }
-        }.bind(this));
+        });
         this._set_sizes();
-        this._read_defaults(false);
+        this._read_defaults();
         this._update_status();
         $.getJSON(`robot/${this._robot}/updateMap`);
         $.getJSON(`robot/${this._robot}/notifyConnection`);
@@ -88,30 +90,20 @@ class PowerWater {
         $.getJSON(`robot/${this._robot}/setProperty?key=${name}&value=${value}`);
     }
 
-    _read_value(name, cb) {
-        $.getJSON(`robot/${this._robot}/getProperty?key=${name}`).done(function (received) {
+    _read_defaults(cb) {
+        $.getJSON(`robot/${this._robot}/getProperty`).done((received) => {
             if (received['error'] == 0) {
-                this._values[name] = received['value'][name];
-            } else {
-                this._store_value(name, this._values[name]);
+                for (let key in received['value']) {
+                    this._values[key] = received['value'][key];
+                }
+                this._set_fan(this._values['fan'], false);
+                this._set_water(this._values['water'], false);
+                this._set_mode(this._values['mode'], false);
+                if (cb) {
+                    cb();
+                }
             }
-            cb(this._values[name]);
-        }.bind(this));
-    }
-
-    _read_defaults(update, cb) {
-        this._read_value('fan', function(value) {
-            this._set_fan(value, update);
-            this._read_value('water', function(value) {
-                this._set_water(value, update);
-                this._read_value('mode', function(value) {
-                    this._set_mode(value, update);
-                    if (cb) {
-                        cb();
-                    }
-                }.bind(this));
-            }.bind(this));
-        }.bind(this));
+        });
     }
 
     _update_status() {
@@ -122,7 +114,7 @@ class PowerWater {
                 $('#noconga').css('z-index', 0);
             }
         });
-        $.getJSON(`robot/${this._robot}/getStatus`).done(function (received) {
+        $.getJSON(`robot/${this._robot}/getStatus`).done((received) => {
             if (received['error'] != 0) {
                 return;
             }
@@ -186,7 +178,7 @@ class PowerWater {
                 }
             }
             this._update_map(received);
-        }.bind(this));
+        });
     }
 
     _set_sizes() {
