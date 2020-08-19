@@ -195,13 +195,21 @@ class PowerWater {
         if (width > height) {
             var top = 1;
             var bottom = 1;
-            var left = Math.floor(width - height) / 2;
-            var right = Math.ceil(width - height) / 2;
+            let wt = (width - (5 * height / 4)) / 2;
+            if (wt < 0) {
+                wt = 0;
+            }
+            var left = Math.floor(wt);
+            var right = Math.ceil(wt);
         } else {
             var left = 1;
             var right = 1;
-            var top = Math.floor(height - width) / 2;
-            var bottom = Math.ceil(height - width) / 2;
+            let wt = (height - (5 * width / 4)) / 2;
+            if (wt < 0) {
+                wt = 0;
+            }
+            var top = Math.floor(wt);
+            var bottom = Math.ceil(wt);
         }
         $("#div_settings2").css("padding", `${top}px ${right}px ${bottom}px ${left}px`);
 
