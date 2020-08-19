@@ -25,6 +25,10 @@ class PowerWater {
             this._set_sizes();
         });
 
+        $("#mapcanvas").click(() => {
+            this.rotate_map();
+        });
+
         for(let x=0; x<4; x++) {
             let name = `#fan_${x}`;
             $(name).click(() => {
@@ -210,24 +214,26 @@ class PowerWater {
         canvas.height = $("#map").height();
     }
 
-    _update_map(data) {
-        if ((this._last_map == data['value']['map']) && (this._last_track == data['value']['track'])) {
-            return;
+    _update_map(data = null) {
+        if (data != null) {
+            if ((this._last_map == data['value']['map']) && (this._last_track == data['value']['track'])) {
+                return;
+            }
+            this._last_map = data['value']['map'];
+            this._last_track = data['value']['track'];
+            this._chargerPos = data['value']['chargerPos'].split(",");
         }
-        this._last_map = data['value']['map'];
-        this._last_track = data['value']['track'];
-        console.log(`map: ${this._last_map}; track: ${this._last_track}`);
-        let track = Uint8Array.from(atob(data['value']['track']).substring(4), c => c.charCodeAt(0))
-        let map =  Uint8Array.from(atob(data['value']['map']), c => c.charCodeAt(0))
+        //console.log(`map: ${this._last_map}; track: ${this._last_track}`);
+        let track = Uint8Array.from(atob(this._last_track).substring(4), c => c.charCodeAt(0))
+        let map =  Uint8Array.from(atob(this._last_map), c => c.charCodeAt(0))
         let mapw = map[5] * 256 + map[6];
         let maph = map[7] * 256 + map[8];
         let pixels = [];
         let pos = 9;
         let repetitions = 0;
 
-        let chargerPos = data['value']['chargerPos'].split(",");
-        let chargerX = parseInt(chargerPos[0]);
-        let chargerY = parseInt(chargerPos[1]);
+        let chargerX = parseInt(this._chargerPos[0]);
+        let chargerY = parseInt(this._chargerPos[1]);
 
         let minx = chargerX;
         let maxx = chargerX;
@@ -297,14 +303,21 @@ class PowerWater {
             return;
         }
 
-        let radius1 = c.width / (maxx - minx + 1);
-        let radius2 = c.height / (maxy - miny + 1);
+        if ((this._rotation == 0) || (this._rotation == 2)) {
+            var radius1 = c.width / (maxx - minx + 1);
+            var radius2 = c.height / (maxy - miny + 1);
+        } else {
+            var radius1 = c.height / (maxx - minx + 1);
+            var radius2 = c.width / (maxy - miny + 1);
+        }
+
         if (radius2 < radius1) {
             radius1 = radius2;
         }
         radius2 = radius1 / 2;
         let radius3 = radius1 * 1.6; // each point is 20cm wide, and the robot is 32cm wide
 
+        let nx, ny, fr1, fr2;
         for(let y = miny; y <= maxy; y++) {
             for(let x = minx; x <= maxx; x++) {
                 let pos = x + mapw * y;
@@ -324,9 +337,8 @@ class PowerWater {
                 }
                 ctx.beginPath();
                 //ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius3, 0, 2 * Math.PI);
-                let ox = (x - minx)*radius1
-                let oy = (y - miny)*radius1
-                ctx.fillRect(ox, oy, radius1, radius1);
+                [nx, ny, fr1, fr2] = this._rotate_coords((x - minx)*radius1, (y - miny)*radius1, radius1, c);
+                ctx.fillRect(nx, ny, fr1, fr2);
                 ctx.fill();
                 pos++;
             }
@@ -341,7 +353,8 @@ class PowerWater {
         for(let a=0; a < track.length; a += 2) {
             if (!first) {
                 ctx.beginPath();
-                ctx.moveTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+                [nx, ny, fr1, fr2] = this._rotate_coords((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, 0, c);
+                ctx.moveTo(nx, ny);
             }
             x = track[a];
             y = track[a + 1];
@@ -349,7 +362,8 @@ class PowerWater {
                 first = false;
                 continue;
             }
-            ctx.lineTo((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2);
+            [nx, ny, fr1, fr2] = this._rotate_coords((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, 0, c);
+            ctx.lineTo(nx, ny);
             ctx.stroke();
         }
 
@@ -358,7 +372,7 @@ class PowerWater {
         ctx.fillStyle = '#ff00ff';
         ctx.strokeStyle = '#000000';
         ctx.beginPath();
-        ctx.arc((x - minx)*radius1 + radius2, (y - miny)*radius1 + radius2, radius2 * 0.8, 0, 2 * Math.PI);
+        ctx.arc(nx, ny, radius2 * 0.8, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
 
@@ -368,10 +382,36 @@ class PowerWater {
             ctx.fillStyle = '#00ff00';
             ctx.strokeStyle = '#000000';
             ctx.beginPath();
-            ctx.arc((chargerX - minx)*radius1 + radius2, (chargerY - miny)*radius1 + radius2, radius2 * 0.8, 0, 2 * Math.PI);
+            [nx, ny, fr1, fr2] = this._rotate_coords((chargerX - minx)*radius1 + radius2, (chargerY - miny)*radius1 + radius2, 0, c);
+            ctx.arc(nx, ny, radius2 * 0.8, 0, 2 * Math.PI);
             ctx.fill();
             ctx.stroke();
         }
+    }
+
+    _rotate_coords(x, y, radius, c) {
+        switch(this._rotation) {
+            case 0:
+                return [x, y, radius, radius];
+            case 1:
+                return [c.width - y, x, -radius, radius];
+            case 2:
+                return [c.width - x, c.height - y, -radius, -radius];
+            case 3:
+                return [y, c.height - x, radius, -radius];
+        }
+    }
+
+    rotate_map() {
+        console.log(`Rotate ${this._rotation}`);
+        this._rotation++;
+        if (this._rotation >= 4) {
+            this._rotation = 0;
+        }
+        console.log(`Rotated ${this._rotation}`);
+        this._last_map = "";
+        this._last_track = "";
+        this._update_map();
     }
 
     _set_audio() {
