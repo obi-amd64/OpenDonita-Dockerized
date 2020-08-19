@@ -374,12 +374,6 @@ class PowerWater {
         }
     }
 
-    _set_block_size(name, w, h) {
-        $(`#${name}`).width(w);
-        $(`#${name}`).height(h);
-        console.log(`tamano ${w}x${h}`);
-    }
-
     _set_audio() {
         if (this._audio) {
             $("#audio_img").attr("src", "speaker_enabled.svg");
