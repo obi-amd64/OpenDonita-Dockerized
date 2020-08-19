@@ -28,6 +28,7 @@ import asyncio
 from congaModules.robotManager import robot_manager
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
+from congaModules.upnp import upnp_announcer
 
 launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")
@@ -196,6 +197,7 @@ loop = asyncio.get_event_loop()
 
 http_server.configure(registered_pages, loop, port_http)
 robot_server.configure(loop, port_bona)
+upnp_announcer.configure(loop)
 
 try:
     loop.run_forever()

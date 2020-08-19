@@ -17,16 +17,19 @@
 import configparser
 import json
 import os
+from congaModules.observer import Signal
 
 class RobotManager(object):
     def __init__(self, config_path):
         super().__init__()
         self._robots = {} # contains Robot objects, one per physical robot, identified by the DeviceId
         self._config_path = config_path
+        self.new_robot = Signal('new', self)
 
     def get_robot(self, deviceId):
         if deviceId not in self._robots:
             self._robots[deviceId] = Robot(deviceId, self._config_path)
+            self.new_robot.emit(deviceId)
         return self._robots[deviceId]
 
     def get_robot_list(self):
