@@ -75,8 +75,6 @@ to the charger.
 The *play* button: this triangle starts a new clean cycle, and will change to a square (or *stop*) button, which will
 stop the clean cycle.
 
-The *sound* button: this is an speaker, and pressing on it enables or disables the *beeps* emited by the robot.
-
 The *settings* button: this button will open a popup where it is possible to choose the fan power, the water flux, and
 the clean mode:
 
@@ -87,6 +85,13 @@ This configuration will be remembered even if the robot is turned off and on aga
 During cleaning, the app will generate the map in real time:
 
 ![Map example](capture3.png)
+
+## Using the Android App
+
+The Android app is available in a separate repository: https://gitlab.com/rastersoft/opendonita_android
+
+It is just a simple WebView-based app, which uses the uPnP announcements of the main server to automagically locate it
+in the network and open the web app.
 
 ## Pairing the robot manually
 
