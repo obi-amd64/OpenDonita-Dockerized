@@ -1,9 +1,11 @@
+var powerWater;
+
 $(document).ready(function(){
-    $(document).powerWater = new PowerWater();
+    powerWater = new PowerWater();
 });
 
 function back_android() {
-    $("#div_settings").hide();
+    return powerWater.back_pressed();
 }
 
 class PowerWater {
@@ -22,6 +24,7 @@ class PowerWater {
         this._last_map = "";
         this._last_track = "";
         this._rotation = 0;
+        this._back_mode = 0;
 
         $(window).resize(() => {
             this._last_map = "";
@@ -61,12 +64,13 @@ class PowerWater {
 
         $("#back").click(() => {
             $("#div_settings").hide();
+            this._back_mode = 0;
         });
 
         $("#settings").click(() => {
+            this._back_mode = 1;
             this._read_defaults();
             $("#div_settings").show();
-            history.pushState({ foo: "bar" }, "page 2", "bar.html");
         });
         $("#div_settings").hide();
 
@@ -92,6 +96,16 @@ class PowerWater {
         $.getJSON(`robot/${this._robot}/notifyConnection`);
         $.getJSON(`robot/${this._robot}/askStatus`);
         setInterval(this._update_status.bind(this), 1000);
+    }
+
+    back_pressed() {
+        if (this._back_mode != 0) {
+            $("#div_settings").hide();
+            this._back_mode = 0;
+            return 0;
+        } else {
+            return 1;
+        }
     }
 
     _store_value(name, value) {
