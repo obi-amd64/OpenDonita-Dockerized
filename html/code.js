@@ -2,6 +2,10 @@ $(document).ready(function(){
     $(document).powerWater = new PowerWater();
 });
 
+function back_android() {
+    $("#div_settings").hide();
+}
+
 class PowerWater {
     constructor() {
         this._values = {};
@@ -62,6 +66,7 @@ class PowerWater {
         $("#settings").click(() => {
             this._read_defaults();
             $("#div_settings").show();
+            history.pushState({ foo: "bar" }, "page 2", "bar.html");
         });
         $("#div_settings").hide();
 

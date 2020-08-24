@@ -6,6 +6,12 @@ would work with other robots.
 
 All the documentation is in my personal blog: https://blog.rastersoft.com/?p=2324 (in spanish).
 
+## Dependencies
+
+The server requires python 3.5 or greater and the *iot-upnp* module. It can be installed with
+
+    sudo python3 -m pip install iot-upnp
+
 ## Using OpenDoñita
 
 To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and

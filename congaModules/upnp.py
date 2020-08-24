@@ -21,17 +21,18 @@ from congaModules.robotManager import robot_manager
 class UPNPAnnouncer(object):
     def __init__(self):
         self._loop = None
-        #robot_manager.new_robot.connect(self._robot_detected)
+
         self._device = upnp.Device({
-            'deviceType': 'urn:sadmin-fr:device:demo:1',
-            'friendlyName': 'UPnP Test',
-            'uuid': '00a56575-78fa-40fe-b107-8f4b5043a2b0',
-            'manufacturer': 'BONNET',
-            'manufacturerURL': 'http://sadmin.fr'
+            'deviceType': 'urn:rastersoft-com:device:donita:1',
+            'friendlyName': 'OpenDoñita',
+            'uuid': 'ca0e5d94-381c-44d4-8a47-8cddbecae0cf',
+            'manufacturer': 'Rastersoft',
+            'manufacturerURL': 'http://www.rastersoft.com'
         })
+
         self._service = upnp.Service({
-            'serviceType': 'sadmin-fr:service:dummy',
-            'serviceId': 'sadmin-fr:serviceId:1',
+            'serviceType': 'rastersoft-com:service:vacuumcleaner',
+            'serviceId': 'rastersoft-com:serviceId:1',
         })
         self._device.addService(self._service)
 
@@ -39,21 +40,13 @@ class UPNPAnnouncer(object):
         self._loop = loop
         self._server = upnp.Annoncer(self._device)
         self._server.initLoop(loop)
-        loop.create_task(self._send_announces())
+        #loop.create_task(self._send_announces())
 
 
     async def _send_announces(self):
         while True:
-            print("Notify upnp")
             self._server.notify()
             await asyncio.sleep(2)
-
-
-    # def _robot_detected(self, deviceId):
-    #     service = upnp.Service({
-    #         'serviceType': 'sadmin-fr:service:dummy',
-    #         'serviceId': 'sadmin-fr:serviceId:1',
-    #     })
 
 
 upnp_announcer = UPNPAnnouncer()
