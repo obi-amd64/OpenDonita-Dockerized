@@ -16,7 +16,7 @@
 
 import upnp
 import asyncio
-from congaModules.robotManager import robot_manager
+from .robotManager import robot_manager
 
 class UPNPAnnouncer(object):
     def __init__(self):

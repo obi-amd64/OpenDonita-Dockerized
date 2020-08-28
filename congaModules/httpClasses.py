@@ -18,7 +18,7 @@ import json
 import asyncio
 from urllib.parse import parse_qs
 
-from congaModules.baseServer import BaseServer, BaseConnection
+from .baseServer import BaseServer, BaseConnection
 
 class HTTPServer(BaseServer):
     def __init__(self):

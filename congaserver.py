@@ -28,7 +28,7 @@ import asyncio
 from congaModules.robotManager import robot_manager
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
-from congaModules.upnp import upnp_announcer
+from congaModules.upnpModule import upnp_announcer
 
 launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")

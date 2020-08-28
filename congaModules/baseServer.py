@@ -17,7 +17,7 @@
 import socket
 import logging
 import asyncio
-from congaModules.observer import Signal
+from .observer import Signal
 
 class BaseServer(object):
 

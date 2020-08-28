@@ -17,7 +17,8 @@
 import configparser
 import json
 import os
-from congaModules.observer import Signal
+
+from .observer import Signal
 
 class RobotManager(object):
     def __init__(self, config_path):

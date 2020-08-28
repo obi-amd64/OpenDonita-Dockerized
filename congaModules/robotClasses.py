@@ -22,9 +22,9 @@ import asyncio
 import types
 import traceback
 
-from congaModules.robotManager import robot_manager
-from congaModules.baseServer import BaseServer, BaseConnection
-from congaModules.observer import Signal
+from .robotManager import robot_manager
+from .baseServer import BaseServer, BaseConnection
+from .observer import Signal
 
 class RobotServer(BaseServer):
 
@@ -38,7 +38,9 @@ class RobotConnection(BaseConnection):
         logging.info("Connected a new robot")
         self._loop = loop
         self._identified = False
-        self._packet_queue = []
+        self._packet_queue = asyncio.Queue()
+        self._wait_for_ack = asyncio.Event()
+        self._wait_for_status = asyncio.Event()
         self._packet_id = 1
         self._token = None
         self._deviceId = None
@@ -47,60 +49,55 @@ class RobotConnection(BaseConnection):
         self._deviceIP = None
         self._devicePort = None
         self._waiting_for_command = None
-        self._timeout_handler = None
         self.statusUpdate = Signal("status", self)
         self._last_command = None
         self._state = 0
+        self._loop.create_task(self.next_command())
 
-    def _timeout(self):
-        print("Timeout")
-        self._timeout_handler = None
-        self._next_command()
 
-    def _next_command(self):
+    async def next_command(self):
         while True:
-            if ((self._waiting_for_command is not None) or
-                (self._timeout_handler is not None) or
-                (len(self._packet_queue) == 0)):
-                print(f"Waiting for command {self._packet_queue}\n\n{self._last_command}; {self._waiting_for_command}; {self._timeout_handler}")
-                return
-
-            command, params = self._packet_queue.pop(0)
+            item = await self._packet_queue.get()
+            command = item[0]
+            params = item[1]
 
             if command == 'waitState':
-                if (params == self._state) or ((params == 'home') and ((self._state == '5') or (self._state == '6'))):
-                    continue
-                else:
+                while (params != self._state) and ((params != 'home') or ((self._state != '5') and (self._state != '6'))):
                     print(f"Waiting for state {params}")
-                    self._packet_queue.insert(0, (command, params))
-                return
-            if command == 'wait':
-                print(f"Waiting {params} seconds")
-                self._timeout_handler = self._loop.call_later(params, self._timeout)
-                return
+                    self._wait_for_status.clear()
+                    await self._wait_for_status.wait()
 
-            self._packet_id += 1
-            data = '{"cmd":0,"control":{"authCode":"'
-            data += self._authCode
-            data += '","deviceIp":"'
-            data += self._deviceIP
-            data += '","devicePort":"'
-            data += self._devicePort
-            data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
-            if params.extraCommand is not None:
-                data += params.extraCommand+','
-            data += '"transitCmd":"'
-            data += command
-            data += '"'
-            if params.extraCommand2 is not None:
-                data += ','+params.extraCommand2
-            data += '}}\n'
-            print(f"Sending command {data}")
-            self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-            self._last_command = f"{command}; {params}"
-            if params.wait_for_ack:
-                self._waiting_for_command = self._packet_id
-                return
+            elif command == 'wait':
+                print(f"Waiting {params} seconds")
+                await asyncio.sleep(params)
+
+            else: # rest of commands
+                self._packet_id += 1
+                data = '{"cmd":0,"control":{"authCode":"'
+                data += self._authCode
+                data += '","deviceIp":"'
+                data += self._deviceIP
+                data += '","devicePort":"'
+                data += self._devicePort
+                data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
+                if params.extraCommand is not None:
+                    data += params.extraCommand+','
+                data += '"transitCmd":"'
+                data += command
+                data += '"'
+                if params.extraCommand2 is not None:
+                    data += ','+params.extraCommand2
+                data += '}}\n'
+                print(f"Sending command {data}")
+                self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+                self._last_command = f"{command}; {params}"
+                if params.wait_for_ack:
+                    self._waiting_for_command = self._packet_id
+                    self._wait_for_ack.clear()
+                    await self._wait_for_ack.wait()
+
+            self._packet_queue.task_done()
+
 
     def send_command(self, command, params):
         if not self._identified:
@@ -119,8 +116,7 @@ class RobotConnection(BaseConnection):
                 seconds = float(params['seconds'])
             except:
                 return 7, "Invalid value for seconds"
-            self._packet_queue.append((command, seconds))
-            self._next_command()
+            self._packet_queue.put_nowait((command, seconds))
             return 0, "{}"
 
         elif command == 'waitState':
@@ -140,8 +136,7 @@ class RobotConnection(BaseConnection):
                 state = 'home'
             else:
                 return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
-            self._packet_queue.append((command, state))
-            self._next_command()
+            self._packet_queue.put_nowait((command, state))
             return 0, "{}"
 
         elif command == 'clean':
@@ -230,21 +225,15 @@ class RobotConnection(BaseConnection):
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
 
-        self._packet_queue.append((ncommand, parameters))
-        self._next_command()
+        self._packet_queue.put_nowait((ncommand, parameters))
         return 0, "{}"
 
     def close(self):
         print("Robot disconnected")
         self._identified = False
-        if self._timeout_handler is not None:
-            self._timeout_handler.cancel()
-            self._timeout_handler = None
         super().close()
 
-
     def new_data(self):
-
         if len(self._data) < 20:
             return False
         data_header = self._data[0:20]
@@ -297,7 +286,7 @@ class RobotConnection(BaseConnection):
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             self._send_payload(payload)
             self._log_payload(payload, "status")
-            self._next_command()
+            self._wait_for_status.set()
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
@@ -305,10 +294,10 @@ class RobotConnection(BaseConnection):
                 if header[3] == self._waiting_for_command:
                     self._send_payload(payload)
                     self._waiting_for_command = None
+                    self._wait_for_ack.set()
                     print("ACK fine")
                 else:
                     print("ACK error")
-                self._next_command()
             return True
         # Map
         if self._check_header(header, None, 0x0014, 0x0001, 0x00):
@@ -321,7 +310,6 @@ class RobotConnection(BaseConnection):
             print("Error")
             self._log_payload(payload, "error")
             self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
-            self._packet_queue = []
             return True
         print("Unknown packet")
         print(header)
