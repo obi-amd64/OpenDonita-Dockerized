@@ -20,6 +20,7 @@ import json
 import struct
 import asyncio
 import types
+import traceback
 
 from congaModules.robotManager import robot_manager
 from congaModules.baseServer import BaseServer, BaseConnection
@@ -246,11 +247,26 @@ class RobotConnection(BaseConnection):
 
         if len(self._data) < 20:
             return False
+        data_header = self._data[0:20]
         header = struct.unpack("<LLLLL", self._data[0:20])
         if len(self._data) < header[0]:
             return False
         payload = self._data[20:header[0]]
         self._data = self._data[header[0]:]
+        try:
+            header_str = ""
+            c = 0
+            for n in data_header:
+                d = hex(n)[2:]
+                if n < 16:
+                    d = "0"+d
+                header_str += d + " "
+                c += 1
+                if (c%4 == 0) and (c < 20):
+                    header_str += "| "
+            logging.info(f"Received packet with values {header_str}")
+        except:
+            traceback.print_exc()
 
         # process the packet
         # PING
@@ -348,6 +364,7 @@ class RobotConnection(BaseConnection):
         return True
 
     def _send_packet(self, value1, value2, packet_id, value3, data = b""):
+        logging.info(f"Sending packet with id {hex(packet_id)}")
         if isinstance(data, str):
             data = data.encode('utf8')
         header = bytearray(struct.pack("<LLLLL", 20 + len(data), value1, value2, packet_id, value3))

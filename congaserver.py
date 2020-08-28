@@ -34,7 +34,7 @@ launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")
 
 logpath = os.path.join(launch_path, "status.log")
-logging.basicConfig(filename=logpath, level=logging.DEBUG, format='%(levelname)s: %(asctime)s\n%(message)s')
+logging.basicConfig(filename=logpath, level=logging.INFO, format='%(levelname)s: %(asctime)s\n%(message)s')
 
 # Errors:
 #
