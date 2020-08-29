@@ -106,6 +106,68 @@ of your Wifi network).
 
 After about two seconds, your computer will be disconnected from that network, and the robot will connect to your WiFi.
 
+## REST API
+
+The server offers a REST API and a full HTTP server running at port 80. It recognizes the following paths and objects:
+
+* **/baole-web/common/sumbitClearTime.do**: part of connecting negotiation process
+* **/baole-web/common/getToken.do**: part of connecting negotiation process
+* **/baole-web/common/**: part of connecting negotiation process
+* **/robot**: commands for managing and controlling the robots
+* **anything else**: the file will be searched in the *html* folder
+
+Under the **robot** path you can use **/robot/list** to get a list of the currently available robots connected to the server.
+It returns a JSON with the following structure:
+
+    {
+        "error":0,
+        "value": ["robot_1", "robot_2"...]
+    }
+
+The *value* field contains a list with zero or more strings. Each string is a robot identifier, which can be used in the
+other commands.
+
+To send an specific command to a robot, you use a path with the following format:
+
+    /robot/robot_id/command
+
+or, if the command requires parameters, then:
+
+    /robot/robot_id/command?param1=value1&param2=value2...
+
+In both cases, *robot_id* is an id returned by **/robot/list**, but can be replaced with *all*, and the command will be sent
+to all the robots currently connected. The commands are stored in a queue and sent one by one to the robot.
+
+The available commands are:
+
+* **clean**: orders the robot to start cleaning
+* **stop**: pauses the cleaning operation
+* **return**: orders the robot to return to the base
+* **updateMap**: orders the robot to send a map update
+* **askStatus**: orders the robot to send an status update
+* **notifyConnection**: notifies the robot that a web client has been opened
+* **mode**: allows to set the cleaning mode. It has one parameter, *type*, with any of these values:
+    * auto
+    * gyro
+    * random
+    * borders
+    * area
+    * x2
+    * scrub
+* **fan**: sets the fan speed. It has one parameter, *speed*, with a value from 0 to 3 (bigger value means more speed)
+* **watertank**: sets the watertank speed. It has one parameter, *speed*, with a value from 0 to 3 (bigger value means more speed)
+* **sound**: allows to enable or disable the buzzer. It has one parameter, *status*, with a zero value to disable it, or one value
+to enable it.
+* **wait**: allows to wait a configurable number of seconds before continuing executing the commands in the queue. It has one parameter,
+*seconds*, with a float/integer value expressing the number of seconds to wait.
+* **waitState**: allows to wait for the robot to be in an specific state before continuing executing the commands in the queue. It has one parameter, *state*, which can have any of these values:
+    * cleaning
+    * stopped
+    * returning
+    * charging
+    * charged
+    * home
+
 ## Author
 
 Sergio Costas  
