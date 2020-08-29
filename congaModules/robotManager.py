@@ -141,11 +141,13 @@ class Robot(object):
         if 'value' not in status:
             return
         value = status['value']
+
         if ('noteCmd' in value) or ('transitCmd' in value):
             for key in value:
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = value[key]
+
         if ('workState' in value) and ('battery' in value):
             state = value['workState']
             if (state != "5") and (state != "6"):

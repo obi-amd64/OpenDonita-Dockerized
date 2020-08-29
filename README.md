@@ -116,16 +116,31 @@ The server offers a REST API and a full HTTP server running at port 80. It recog
 * **/robot**: commands for managing and controlling the robots
 * **anything else**: the file will be searched in the *html* folder
 
-Under the **robot** path you can use **/robot/list** to get a list of the currently available robots connected to the server.
-It returns a JSON with the following structure:
+Every time a call returns something, it will be a JSON file with this format:
 
     {
-        "error":0,
-        "value": ["robot_1", "robot_2"...]
+        "error": error_value,
+        "value": data_to_be_returned
     }
 
-The *value* field contains a list with zero or more strings. Each string is a robot identifier, which can be used in the
-other commands.
+**error** is a numerical value. The possible values are:
+
+0. No error
+1. Missing robot ID
+2. Invalid robot ID
+3. Robot is not connected to the server
+4. Robot still not identified in server
+5. Unknown command
+6. Missing parameter
+7. Invalid value (like "out of range", or similar)
+8. Key doesn't exist in persistent data
+
+If the error value is zero, then *data_to_be_returned* can be an array, a dictionary... something dependent on the command
+executed. But if the error is not zero, then *data_to_be_returned* will be an string.
+
+Under the **robot** path you can use **/robot/list** to get a list of the currently available robots connected to the server.
+In the returned JSON, *data_to_be_returned* will be an array with zero or more strings. Each string is a robot identifier,
+which can be used in the other commands.
 
 To send an specific command to a robot, you use a path with the following format:
 
@@ -167,6 +182,16 @@ to enable it.
     * charging
     * charged
     * home
+* **getStatus**: allows to get the current status of the robot. *data_to_be_returned* will contain a dictionary with data obtained from
+the pairing process, from *status* events, or from *error* events.
+* **setStatus**: allows to modify an entry in the status. Usually the entry value will be overwritten again when the robot updates its
+state, but some entries (like *error*) can be useful to be modifiable. It receives one or more parameters, being the name of the entry
+or entries to be modified and their new value. It returns a dictionary with the new *status* values.
+* **getProperty**: allows to get a property. Properties are non-volatile pairs of *key*-*value*, useful to store the configuration of
+the robot, or other things. If no parameter is passed, a dictionary with all the properties is returned; instead, if a *key* parameter
+is passed, only the value for the key specified by it will be returned.
+* **setProperty**: allows to set a property value. It receives two parameters: *key*, with the key to set or modify, and *value*, with
+the new value. The new value is stored in permanent storage immediately. All values are converted into strings before being stored.
 
 ## Author
 
