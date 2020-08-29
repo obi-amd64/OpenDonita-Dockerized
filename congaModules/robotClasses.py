@@ -50,26 +50,23 @@ class RobotConnection(BaseConnection):
         self._devicePort = None
         self._waiting_for_command = None
         self.statusUpdate = Signal("status", self)
-        self._last_command = None
         self._state = 0
-        self._loop.create_task(self.next_command())
+        self._loop.create_task(self.execute_commands())
 
 
-    async def next_command(self):
+    async def execute_commands(self):
         while True:
-            item = await self._packet_queue.get()
-            command = item[0]
-            params = item[1]
+            parameters = await self._packet_queue.get()
 
-            if command == 'waitState':
-                while (params != self._state) and ((params != 'home') or ((self._state != '5') and (self._state != '6'))):
-                    print(f"Waiting for state {params}")
+            if parameters.command == 'waitState':
+                while (parameters.state != self._state) and ((parameters.state != 'home') or ((self._state != '5') and (self._state != '6'))):
+                    print(f"Waiting for state {parameters.state}")
                     self._wait_for_status.clear()
                     await self._wait_for_status.wait()
 
-            elif command == 'wait':
-                print(f"Waiting {params} seconds")
-                await asyncio.sleep(params)
+            elif parameters.command == 'wait':
+                print(f"Waiting {parameters.seconds} seconds")
+                await asyncio.sleep(parameters.seconds)
 
             else: # rest of commands
                 self._packet_id += 1
@@ -80,18 +77,17 @@ class RobotConnection(BaseConnection):
                 data += '","devicePort":"'
                 data += self._devicePort
                 data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
-                if params.extraCommand is not None:
-                    data += params.extraCommand+','
+                if parameters.prefix_commands is not None:
+                    data += parameters.prefix_commands+','
                 data += '"transitCmd":"'
-                data += command
+                data += parameters.command
                 data += '"'
-                if params.extraCommand2 is not None:
-                    data += ','+params.extraCommand2
+                if parameters.suffix_commands is not None:
+                    data += ','+parameters.suffix_commands
                 data += '}}\n'
                 print(f"Sending command {data}")
                 self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-                self._last_command = f"{command}; {params}"
-                if params.wait_for_ack:
+                if parameters.wait_for_ack:
                     self._waiting_for_command = self._packet_id
                     self._wait_for_ack.clear()
                     await self._wait_for_ack.wait()
@@ -105,127 +101,124 @@ class RobotConnection(BaseConnection):
             return 4, "Not identified"
 
         parameters = types.SimpleNamespace()
+        parameters.command = None
         parameters.wait_for_ack = True
-        parameters.extraCommand = None
-        parameters.extraCommand2 = None
+        parameters.prefix_commands = None
+        parameters.suffix_commands = None
 
         if command == 'wait':
             if 'seconds' not in params:
                 return 6, "Missing parameter (seconds)"
             try:
-                seconds = float(params['seconds'])
+                parameters.seconds = float(params['seconds'])
             except:
                 return 7, "Invalid value for seconds"
-            self._packet_queue.put_nowait((command, seconds))
-            return 0, "{}"
-
+            parameters.command = 'wait'
         elif command == 'waitState':
             if 'state' not in params:
                 return 6, "Missing parameter (state)"
             if params['state'] == 'cleaning':
-                state = '1'
+                parameters.state = '1'
             elif params['state'] == 'stopped':
-                state = '2'
+                parameters.state = '2'
             elif params['state'] == 'returning':
-                state = '4'
+                parameters.state = '4'
             elif params['state'] == 'charging':
-                state = '5'
+                parameters.state = '5'
             elif params['state'] == 'charged':
-                state = '6'
+                parameters.state = '6'
             elif params['state'] == 'home':
-                state = 'home'
+                parameters.state = 'home'
             else:
                 return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
-            self._packet_queue.put_nowait((command, state))
-            return 0, "{}"
-
+            parameters.command = 'waitState'
         elif command == 'clean':
             logging.info("Starting to clean")
-            ncommand = '100'
+            parameters.command = '100'
         elif command == 'stop':
             logging.info("Stopping cleaning")
-            ncommand = '102'
+            parameters.command = '102'
         elif command == 'return':
             logging.info("Returning to base")
-            ncommand = '104'
+            parameters.command = '104'
         elif command == 'updateMap':
             logging.info("Asking map")
-            ncommand = '131'
+            parameters.command = '131'
         elif command == 'sound':
             if "status" not in params:
                 return 6, "Missing parameter (status)"
             if params['status'] == '0':
                 logging.info("Disabling sound")
-                ncommand = '125'
+                parameters.command = '125'
             elif params['status'] == '1':
                 logging.info("Enabling sound")
-                ncommand = '123'
+                parameters.command = '123'
             else:
                 return 7, "Invalid value (valid values are 0 and 1)"
         elif command == 'fan':
-            ncommand = '110'
+            parameters.command = '110'
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
             if params['speed'] == '0':
-                parameters.extraCommand = '"fan":"1"' # OFF
+                parameters.prefix_commands = '"fan":"1"' # OFF
             elif params['speed'] == '1':
-                parameters.extraCommand = '"fan":"4"' # ECO
+                parameters.prefix_commands = '"fan":"4"' # ECO
             elif params['speed'] == '2':
-                parameters.extraCommand = '"fan":"2"' # NORMAL
+                parameters.prefix_commands = '"fan":"2"' # NORMAL
             elif params['speed'] == '3':
-                parameters.extraCommand = '"fan":"3"' # TURBO
+                parameters.prefix_commands = '"fan":"3"' # TURBO
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting fan to {params['speed']}")
         elif command == 'watertank':
-            ncommand = '145'
+            parameters.command = '145'
             if 'speed' not in params:
                 return 6, "Missing parameter (speed)"
             if params['speed'] == '0':
-                parameters.extraCommand2 = '"waterTank":"255"' # OFF
+                parameters.suffix_commands = '"waterTank":"255"' # OFF
             elif params['speed'] == '1':
-                parameters.extraCommand2 = '"waterTank":"60"' # SMALL
+                parameters.suffix_commands = '"waterTank":"60"' # SMALL
             elif params['speed'] == '2':
-                parameters.extraCommand2 = '"waterTank":"40"' # NORMAL
+                parameters.suffix_commands = '"waterTank":"40"' # NORMAL
             elif params['speed'] == '3':
-                parameters.extraCommand2 = '"waterTank":"20"' # FAST
+                parameters.suffix_commands = '"waterTank":"20"' # FAST
             else:
                 return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting water to {params['speed']}")
         elif command == 'mode':
-            ncommand = '106'
+            parameters.command = '106'
             if 'type' not in params:
                 return 6, "Missing parameter (type)"
             if params['type'] == 'auto':
-                parameters.extraCommand = '"mode":"11"'
+                parameters.prefix_commands = '"mode":"11"'
             elif params['type'] == 'gyro':
-                parameters.extraCommand = '"mode":"1"'
+                parameters.prefix_commands = '"mode":"1"'
             elif params['type'] == 'random':
-                parameters.extraCommand = '"mode":"3"'
+                parameters.prefix_commands = '"mode":"3"'
             elif params['type'] == 'borders':
-                parameters.extraCommand = '"mode":"4"'
+                parameters.prefix_commands = '"mode":"4"'
             elif params['type'] == 'area':
-                parameters.extraCommand = '"mode":"6"'
+                parameters.prefix_commands = '"mode":"6"'
             elif params['type'] == 'x2':
-                parameters.extraCommand = '"mode":"8"'
+                parameters.prefix_commands = '"mode":"8"'
             elif params['type'] == 'scrub':
-                parameters.extraCommand = '"mode":"10"'
+                parameters.prefix_commands = '"mode":"10"'
             else:
                 return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
             logging.info(f"Setting mode to {params['type']}")
         elif command == 'notifyConnection': # seems to be sent whenever the tablet connects to the server
-            ncommand = '400'
+            parameters.command = '400'
             parameters.wait_for_ack = False
             logging.info("Web client opened")
         elif command == 'askStatus': # seems to ask the robot to send a Status packet
-            ncommand = '98'
+            parameters.command = '98'
             parameters.wait_for_ack = False
             logging.info("Asking status")
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
 
-        self._packet_queue.put_nowait((ncommand, parameters))
+        self._packet_queue.put_nowait(parameters)
         return 0, "{}"
 
     def close(self):
