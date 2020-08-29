@@ -192,6 +192,7 @@ the robot, or other things. If no parameter is passed, a dictionary with all the
 is passed, only the value for the key specified by it will be returned.
 * **setProperty**: allows to set a property value. It receives two parameters: *key*, with the key to set or modify, and *value*, with
 the new value. The new value is stored in permanent storage immediately. All values are converted into strings before being stored.
+* **setDefaults**: sets the fan, water and clean mode in the robot to the values stored in the properties.
 
 ## Author
 

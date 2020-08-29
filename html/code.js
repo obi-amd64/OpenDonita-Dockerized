@@ -82,7 +82,7 @@ class PowerWater {
 
         $("#startstop").click(() => {
             if (this._allowStart) {
-                this._read_defaults(() => {
+                $.getJSON(`robot/${this._robot}/setDefaults`).done(() => {
                     $.getJSON(`robot/${this._robot}/clean`);
                 });
             } else if (this._allowStop) {

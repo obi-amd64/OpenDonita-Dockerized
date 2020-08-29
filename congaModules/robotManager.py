@@ -17,6 +17,7 @@
 import configparser
 import json
 import os
+import traceback
 
 from .observer import Signal
 
@@ -61,6 +62,7 @@ class Robot(object):
                              'cleanGoon', 'clearArea','clearTime','clearSign','clearModule','isFinish','chargerPos',
                              'map','track','errorCode','doTime',
                              'appKey','deviceType','authCode','funDefine','nonce_str','version','sign']
+        self._modes = ["auto", "gyro", "random", "borders", "area", "x2", "scrub"]
         self._defPersistent('water', '0')
         self._defPersistent('fan', '2')
         self._defPersistent('mode', '0')
@@ -129,11 +131,25 @@ class Robot(object):
                 self._persistentData.write(configfile)
             return 0, '"OK"'
 
+        if command == 'setDefaults':
+            self._setDefaults()
+            return 0, '"OK"'
+
         if command == 'resetBattery':
             self._resetBattery()
             return 0, '"OK"'
 
         return self._connection.send_command(command, params)
+
+
+    def _setDefaults(self):
+        self._connection.send_command('fan', {'speed': self._getPersistentString('fan', 2)})
+        self._connection.send_command('watertank', {'speed': self._getPersistentString('water', 0)})
+        try:
+            fmode = self._modes[self._getPersistentInteger('mode', 0)]
+        except:
+            fmode = 'auto'
+        self._connection.send_command('mode', {'type': fmode})
 
 
     def statusUpdate(self, signame, sender, status):
@@ -164,6 +180,12 @@ class Robot(object):
                     except:
                         pass
             self._current_workState = state
+
+    def _getPersistentString(self, key, default = None):
+        if key not in self._persistentData[self._identifier]:
+            return default
+        else:
+            return self._persistentData[self._identifier][key]
 
     def _getPersistentBoolean(self, key, default_value):
         try:
