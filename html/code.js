@@ -27,6 +27,20 @@ class PowerWater {
         this._back_mode = 0;
         this._cb_queue = [];
         this._waiting_answer = false;
+        this._showing_map = true;
+        this._current_direction = "stop";
+        this._move_timer = null;
+        this._canvas_width = 1;
+        this._canvas_height = 1;
+
+        window.oncontextmenu = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+       };
+
+        $("#div_manual").hide();
+        $("#div_settings").hide();
 
         $(window).resize(() => {
             this._last_map = "";
@@ -34,9 +48,35 @@ class PowerWater {
             this._set_sizes();
         });
 
-        $("#mapcanvas").click(() => {
-            this.rotate_map();
-        });
+        let mapcanvas = document.getElementById('mapcanvas');
+        mapcanvas.addEventListener('pointerdown', (event) => {
+            if (this._showing_map) {
+                this.rotate_map();
+                return;
+            }
+            let x = event.clientX / this._canvas_width;
+            let y = event.clientY / this._canvas_height;
+            if ((x <= 0.5) && (x <= y) && (y <= (1-x))) {
+                this._move_to('turnLeft');
+                return;
+            }
+            if ((x >= 0.5) && (x >= y) && (y >= (1-x))) {
+                this._move_to('turnRight');
+                return;
+            }
+            if ((y <= 0.5) && (y <= x) && (x <= (1-y))) {
+                this._move_to('goForward');
+                return;
+            }
+            if ((y >= 0.5) && (y >= x) && (x >= (1-y))) {
+                this._move_to('goBack');
+                return;
+            }
+        }, false);
+
+        mapcanvas.addEventListener('pointerup', () => {
+            this._move_to("stop");
+        }, false);
 
         for(let x=0; x<4; x++) {
             let name = `#fan_${x}`;
@@ -54,6 +94,22 @@ class PowerWater {
                 this._set_mode(x, true);
             });
         }
+
+        this._loaded_pictures = {};
+        this._load_picture("arrow_up", "arrow_up.svg", this._update_canvas.bind(this));
+        this._load_picture("arrow_down", "arrow_down.svg", this._update_canvas.bind(this));
+        this._load_picture("arrow_left", "arrow_left.svg", this._update_canvas.bind(this));
+        this._load_picture("arrow_right", "arrow_right.svg", this._update_canvas.bind(this));
+
+        $("#map_manual").click(() => {
+            this._showing_map = !this._showing_map;
+            if (this._showing_map) {
+                this._set_src("#map_manual", "manual.svg");
+            } else {
+                this._set_src("#map_manual", "map_icon.svg");
+            }
+            this._update_canvas();
+        });
 
         $("#audio").click(() => {
             if (this._audio) {
@@ -74,7 +130,6 @@ class PowerWater {
             this._read_defaults();
             $("#div_settings").show();
         });
-        $("#div_settings").hide();
 
         $("#home").click(() => {
             if (this._allowHome) {
@@ -90,6 +145,7 @@ class PowerWater {
                 this._send_command(`robot/${this._robot}/stop`);
             }
         });
+
         this._set_sizes();
         this._read_defaults();
         this._update_status();
@@ -97,6 +153,40 @@ class PowerWater {
         this._send_command(`robot/${this._robot}/notifyConnection`);
         this._send_command(`robot/${this._robot}/askStatus`);
         setInterval(this._update_status.bind(this), 1000);
+    }
+
+    _load_picture(name, filename) {
+        var pic = new Image();
+        this._loaded_pictures[name] = null;
+        pic.onload = function() {
+            this._loaded_pictures[name] = pic;
+            if (this._showing_map) {
+                return;
+            }
+            for (let key in this._loaded_pictures) {
+                if (this._loaded_pictures[key] == null) {
+                    return;
+                }
+            }
+            this._update_canvas();
+        }.bind(this);
+        pic.src = filename;
+    }
+
+    _move_to(direction) {
+        if (this._move_timer) {
+            clearInterval(this._move_timer);
+            this._move_timer = null;
+        }
+        if (direction == "stop") {
+            this._send_command(`robot/${this._robot}/stayStill`);
+            return;
+        }
+        this._current_direction = direction;
+        this._move_timer = setInterval(function () {
+            this._send_command(`robot/${this._robot}/${this._current_direction}`);
+        }.bind(this), 2000);
+        this._send_command(`robot/${this._robot}/${this._current_direction}`);
     }
 
     back_pressed() {
@@ -109,10 +199,15 @@ class PowerWater {
         }
     }
 
+    _set_src(element, new_src) {
+        let e = $(element);
+        if (e.attr("src") != new_src) {
+            e.attr("src", new_src);
+        }
+    }
+
     _send_command(command, cb) {
-        console.log(`Send command ${command}`);
         if (this._waiting_answer) {
-            console.log("Waiting");
             if (!cb) {
                 cb = null;
             }
@@ -121,7 +216,6 @@ class PowerWater {
         }
         this._waiting_answer = true;
         $.getJSON(command).done((answer) => {
-            console.log(`Done ${command}`);
             if (cb) {
                 cb(answer);
             }
@@ -131,7 +225,6 @@ class PowerWater {
                 this._send_command(newcb[0], newcb[1]);
             }
         }).fail(() => {
-            console.log(`Failed ${command}`);
             this._waiting_answer = false;
             if (this._cb_queue.length != 0) {
                 let newcb = this._cb_queue.shift();
@@ -186,10 +279,10 @@ class PowerWater {
             let mode = received['value']['workState'];
             if ((mode == 4) || (mode == 5) || (mode == 6)) {
                 this._allowHome = false;
-                $("#home").attr("src", "home_disabled.svg");
+                this._set_src("#home", "home_disabled.svg");
             } else {
                 this._allowHome = true;
-                $("#home").attr("src", "home_enabled.svg");
+                this._set_src("#home", "home_enabled.svg");
             }
             if ((mode == 2) || (mode == 5) || (mode == 6)) {
                 this._allowStart = true;
@@ -202,12 +295,12 @@ class PowerWater {
                 this._allowStop = false;
             }
             if (this._allowStart) {
-                $("#startstop").attr("src", "play_enabled.svg");
+                this._set_src("#startstop", "play_enabled.svg");
             } else {
                 if (this._allowStop) {
-                    $("#startstop").attr("src", "stop_enabled.svg");
+                    this._set_src("#startstop", "stop_enabled.svg");
                 } else {
-                    $("#startstop").attr("src", "play_disabled.svg");
+                    this._set_src("#startstop", "play_disabled.svg");
                 }
             }
             if (mode == 5) {
@@ -232,7 +325,7 @@ class PowerWater {
                     this._counter = 0;
                 }
             }
-            this._update_map(received);
+            this._update_canvas(received);
         });
     }
 
@@ -263,6 +356,41 @@ class PowerWater {
         let canvas = document.getElementById("mapcanvas");
         canvas.width = $("#map").width();
         canvas.height = $("#map").height();
+        this._canvas_width = canvas.width;
+        this._canvas_height = canvas.height;
+    }
+
+    _update_canvas(data = null) {
+        if (this._showing_map) {
+            this._update_map(data);
+        } else {
+            this._update_manual_control(data);
+        }
+    }
+
+    _update_manual_control(data) {
+        if (data != null) {
+            return;
+        }
+        console.log("repaint_canvas");
+        var c = document.getElementById("mapcanvas");
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, c.width, c.height);
+        let w = Math.floor(c.width / 3);
+        let h = Math.floor(c.height / 3);
+        if (this._loaded_pictures["arrow_up"]) {
+            ctx.drawImage(this._loaded_pictures["arrow_up"], w, 0, w, h);
+        }
+        if (this._loaded_pictures["arrow_down"]) {
+            ctx.drawImage(this._loaded_pictures["arrow_down"], w, 2 * h, w, h);
+        }
+        if (this._loaded_pictures["arrow_left"]) {
+            ctx.drawImage(this._loaded_pictures["arrow_left"], 0, h, w, h);
+        }
+        if (this._loaded_pictures["arrow_right"]) {
+            ctx.drawImage(this._loaded_pictures["arrow_right"], 2 * w, h, w, h);
+        }
     }
 
     _update_map(data = null) {
@@ -454,12 +582,10 @@ class PowerWater {
     }
 
     rotate_map() {
-        console.log(`Rotate ${this._rotation}`);
         this._rotation++;
         if (this._rotation >= 4) {
             this._rotation = 0;
         }
-        console.log(`Rotated ${this._rotation}`);
         this._last_map = "";
         this._last_track = "";
         this._update_map();
@@ -467,9 +593,9 @@ class PowerWater {
 
     _set_audio() {
         if (this._audio) {
-            $("#audio_img").attr("src", "speaker_enabled.svg");
+            this._set_src("#audio_img", "speaker_enabled.svg");
         } else {
-            $("#audio_img").attr("src", "speaker_disabled.svg");
+            this._set_src("#audio_img", "speaker_disabled.svg");
         }
     }
 

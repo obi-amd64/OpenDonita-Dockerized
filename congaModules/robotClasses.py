@@ -276,7 +276,7 @@ class RobotConnection(BaseConnection):
         elif command == 'goForward':
             parameters.command = 'manual'
             parameters.direction = 1
-        elif command == 'goBackwards':
+        elif command == 'goBack':
             parameters.command = 'manual'
             parameters.direction = 2
         elif command == 'turnLeft':
