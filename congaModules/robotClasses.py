@@ -55,8 +55,10 @@ class RobotConnection(BaseConnection):
 
 
     async def execute_commands(self):
-        while True:
+        while not self._closed:
             parameters = await self._packet_queue.get()
+            if parameters is None:
+                break
 
             if parameters.command == 'waitState':
                 while (parameters.state != self._state) and ((parameters.state != 'home') or ((self._state != '5') and (self._state != '6'))):
@@ -224,6 +226,9 @@ class RobotConnection(BaseConnection):
     def close(self):
         print("Robot disconnected")
         self._identified = False
+        self._wait_for_ack.set()
+        self._wait_for_status.set()
+        self._packet_queue.put_nowait(None)
         super().close()
 
     def new_data(self):
