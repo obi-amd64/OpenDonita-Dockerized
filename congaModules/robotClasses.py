@@ -69,7 +69,7 @@ class RobotConnection(BaseConnection):
         params.suffix_commands = None
         params.wait_for_ack = True
 
-        while True:
+        while not self._end_tasks:
             try:
                 self._manual_event.clear()
                 if self._current_direction == 0:
@@ -85,6 +85,8 @@ class RobotConnection(BaseConnection):
                             self._desired_direction = 0
                             await self._send_packet(params)
                         continue
+                if self._end_tasks:
+                    break
                 if (self._current_direction != 0) and (self._desired_direction != self._current_direction):
                     # changing direction, so first stop the robot
                     params.prefix_commands = f'"direction":"5","tag":"{self._current_direction}"'
@@ -96,6 +98,7 @@ class RobotConnection(BaseConnection):
                     await self._send_packet(params)
             except:
                 traceback.print_exc()
+
 
     async def execute_commands(self):
         while not self._end_tasks:
@@ -127,6 +130,8 @@ class RobotConnection(BaseConnection):
     async def _send_packet(self, parameters):
         while self._wait_for_ack.is_set():
             await self._wait_for_ack.wait()
+        if self._end_tasks:
+            return
         self._packet_id += 1
         data = '{"cmd":0,"control":{"authCode":"'
         data += self._authCode
@@ -298,6 +303,7 @@ class RobotConnection(BaseConnection):
         self._end_tasks = True
         self._wait_for_ack.set()
         self._wait_for_status.set()
+        self._manual_event.set()
         self._packet_queue.put_nowait(None)
         super().close()
 
