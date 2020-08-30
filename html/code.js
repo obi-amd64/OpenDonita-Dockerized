@@ -96,10 +96,10 @@ class PowerWater {
         }
 
         this._loaded_pictures = {};
-        this._load_picture("arrow_up", "arrow_up.svg", this._update_canvas.bind(this));
-        this._load_picture("arrow_down", "arrow_down.svg", this._update_canvas.bind(this));
-        this._load_picture("arrow_left", "arrow_left.svg", this._update_canvas.bind(this));
-        this._load_picture("arrow_right", "arrow_right.svg", this._update_canvas.bind(this));
+        this._load_picture("arrow_up", "arrow_up.svg");
+        this._load_picture("arrow_down", "arrow_down.svg");
+        this._load_picture("arrow_left", "arrow_left.svg");
+        this._load_picture("arrow_right", "arrow_right.svg");
 
         $("#map_manual").click(() => {
             this._showing_map = !this._showing_map;
