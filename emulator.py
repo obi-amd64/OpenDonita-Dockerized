@@ -165,6 +165,7 @@ voice = 2
 battery = 100
 bat_timeout = 0
 workstate = 6
+direction = 0
 
 home_timeout = 0
 
@@ -172,7 +173,7 @@ battery_error_counter_init = 20
 battery_error_counter = battery_error_counter_init
 
 def get_status():
-    return '{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"'+str(workstate)+'","workMode":"0","fan":"1","direction":"0","brush":"2","battery":"'+str(battery)+'","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}'
+    return '{"version":"1.0","control": {"targetId":"0","targetType":"6","broadcast":"0"},"value": {"noteCmd":"102","workState":"'+str(workstate)+'","workMode":"0","fan":"1","direction":"'+str(direction)+'","brush":"2","battery":"'+str(battery)+'","voice":"'+str(voice)+'","error":"0","standbyMode":"1","waterTank":"40","clearComponent":"0","waterMark":"0","version":"3.9.1714(513)","attract":"0","deviceIp":"192.168.18.14","devicePort":"8888","cleanGoon":"2"}}'
 
 send_packet(0x0010, 0x0001, None, 0x00, '{"version":"1.0","control":{"targetId":"0","targetType":"6","broadcast":"0"},"value":{"token":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","deviceId":"yyyyyyyyyyyyyy","appKey":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","deviceType":"1","authCode":"zzzzz","deviceIp":"192.168.18.3","devicePort":"8888"}}')
 
@@ -316,6 +317,20 @@ while True:
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "98"):
         print("Update status")
+        continue
+
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "108"):
+        if 'direction' in data['value']:
+            try:
+                direction = int(data['value']['direction'])
+            except:
+                direction = 0
+            if direction > 4:
+                direction = 0
+            print(f"New direction: {direction}")
+        else:
+            print('No DIRECTION key in data')
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
         continue
 
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, None):

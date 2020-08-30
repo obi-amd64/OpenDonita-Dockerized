@@ -21,6 +21,7 @@ import struct
 import asyncio
 import types
 import traceback
+import time
 
 from .robotManager import robot_manager
 from .baseServer import BaseServer, BaseConnection
@@ -53,7 +54,48 @@ class RobotConnection(BaseConnection):
         self.statusUpdate = Signal("status", self)
         self._state = 0
         self._loop.create_task(self.execute_commands())
+        self._loop.create_task(self.manual_loop())
+        self._current_direction = 0
+        self._desired_direction = 0
+        self._manual_time = time.time()
+        self._manual_event = asyncio.Event()
 
+
+    async def manual_loop(self):
+        """ Manages the manual control of the robot """
+
+        params = types.SimpleNamespace()
+        params.command = "108"
+        params.suffix_commands = None
+        params.wait_for_ack = True
+
+        while True:
+            try:
+                self._manual_event.clear()
+                if self._current_direction == 0:
+                    await self._manual_event.wait()
+                else:
+                    try:
+                        await asyncio.wait_for(self._manual_event.wait(), 2.2)
+                    except asyncio.TimeoutError:
+                        # after 2.2 seconds without receiving calls, stop the robot
+                        if self._current_direction != 0:
+                            params.prefix_commands = f'"direction":"5","tag":"{self._current_direction}"'
+                            self._current_direction = 0
+                            self._desired_direction = 0
+                            await self._send_packet(params)
+                        continue
+                if (self._current_direction != 0) and (self._desired_direction != self._current_direction):
+                    # changing direction, so first stop the robot
+                    params.prefix_commands = f'"direction":"5","tag":"{self._current_direction}"'
+                    self._current_direction = 0
+                    await self._send_packet(params)
+                self._current_direction = self._desired_direction
+                if self._current_direction != 0:
+                    params.prefix_commands = f'"direction":"{self._current_direction}"'
+                    await self._send_packet(params)
+            except:
+                traceback.print_exc()
 
     async def execute_commands(self):
         while not self._end_tasks:
@@ -72,31 +114,41 @@ class RobotConnection(BaseConnection):
                 print(f"Waiting {parameters.seconds} seconds")
                 await asyncio.sleep(parameters.seconds)
 
+            elif parameters.command == 'manual':
+                self._desired_direction = parameters.direction
+                self._manual_event.set()
+
             else: # rest of commands
-                self._packet_id += 1
-                data = '{"cmd":0,"control":{"authCode":"'
-                data += self._authCode
-                data += '","deviceIp":"'
-                data += self._deviceIP
-                data += '","devicePort":"'
-                data += self._devicePort
-                data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
-                if parameters.prefix_commands is not None:
-                    data += parameters.prefix_commands+','
-                data += '"transitCmd":"'
-                data += parameters.command
-                data += '"'
-                if parameters.suffix_commands is not None:
-                    data += ','+parameters.suffix_commands
-                data += '}}\n'
-                print(f"Sending command {data}")
-                self._send_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
-                if parameters.wait_for_ack:
-                    self._waiting_for_command = self._packet_id
-                    self._wait_for_ack.clear()
-                    await self._wait_for_ack.wait()
+                await self._send_packet(parameters)
 
             self._packet_queue.task_done()
+
+
+    async def _send_packet(self, parameters):
+        while self._wait_for_ack.is_set():
+            await self._wait_for_ack.wait()
+        self._packet_id += 1
+        data = '{"cmd":0,"control":{"authCode":"'
+        data += self._authCode
+        data += '","deviceIp":"'
+        data += self._deviceIP
+        data += '","devicePort":"'
+        data += self._devicePort
+        data += '","targetId":"1","targetType":"3"},"seq":0,"value":{'
+        if parameters.prefix_commands is not None:
+            data += parameters.prefix_commands+','
+        data += '"transitCmd":"'
+        data += parameters.command
+        data += '"'
+        if parameters.suffix_commands is not None:
+            data += ','+parameters.suffix_commands
+        data += '}}\n'
+        print(f"Sending command {data}")
+        self._send_binary_packet(0x00c800fa, 0x01090000, self._packet_id, 0x00, data)
+        if parameters.wait_for_ack:
+            self._waiting_for_command = self._packet_id
+            await self._wait_for_ack.wait()
+            self._wait_for_ack.clear()
 
 
     def send_command(self, command, params):
@@ -218,6 +270,21 @@ class RobotConnection(BaseConnection):
             parameters.command = '98'
             parameters.wait_for_ack = False
             logging.info("Asking status")
+        elif command == 'goForward':
+            parameters.command = 'manual'
+            parameters.direction = 1
+        elif command == 'goBackwards':
+            parameters.command = 'manual'
+            parameters.direction = 2
+        elif command == 'turnLeft':
+            parameters.command = 'manual'
+            parameters.direction = 3
+        elif command == 'turnRight':
+            parameters.command = 'manual'
+            parameters.direction = 4
+        elif command == 'stayStill':
+            parameters.command = 'manual'
+            parameters.direction = 0
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
@@ -262,7 +329,7 @@ class RobotConnection(BaseConnection):
         # PING
         if self._check_header(header, 0x14, 0x00c80100, 0x01,0x03e7):
             print("Pong")
-            self._send_packet(0x00c80111, 0x01080001, header[3], 0x03e7)
+            self._send_binary_packet(0x00c80111, 0x01080001, header[3], 0x03e7)
             return True
         # Identification
         if self._check_header(header, None, 0x0010, 0x0001, 0x00):
@@ -278,13 +345,13 @@ class RobotConnection(BaseConnection):
             robot_manager.get_robot(self._deviceId).connected(self)
             self._identified = True
             now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            self._send_packet(0x00c80011, 0x01, header[3], 0x00, '{"msg":"login succeed","result":0,"version":"1.0","time":"'+now+'"}')
+            self._send_binary_packet(0x00c80011, 0x01, header[3], 0x00, '{"msg":"login succeed","result":0,"version":"1.0","time":"'+now+'"}')
             logging.info(f"Robot identified as {self._deviceId} at IP {self._deviceIP}")
             return True
         # Status
         if self._check_header(header, None, 0x0018, 0x0001, 0x00):
             print("Status")
-            self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
+            self._send_binary_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             self._send_payload(payload)
             self._log_payload(payload, "status")
             self._wait_for_status.set()
@@ -310,7 +377,7 @@ class RobotConnection(BaseConnection):
         if self._check_header(header, None, 0x0016, 0x0001, 0x00):
             print("Error")
             self._log_payload(payload, "error")
-            self._send_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
+            self._send_binary_packet(0x00c80019, 0x01, header[3], 0x01, '{"msg":"OK","result":0,"version":"1.0"}\n')
             return True
         print("Unknown packet")
         print(header)
@@ -352,7 +419,7 @@ class RobotConnection(BaseConnection):
             return False
         return True
 
-    def _send_packet(self, value1, value2, packet_id, value3, data = b""):
+    def _send_binary_packet(self, value1, value2, packet_id, value3, data = b""):
         logging.info(f"Sending packet with id {hex(packet_id)}")
         if isinstance(data, str):
             data = data.encode('utf8')
