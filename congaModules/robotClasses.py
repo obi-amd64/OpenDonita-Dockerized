@@ -48,6 +48,7 @@ class RobotConnection(BaseConnection):
         self._authCode = None
         self._deviceIP = None
         self._devicePort = None
+        self._end_tasks = False
         self._waiting_for_command = None
         self.statusUpdate = Signal("status", self)
         self._state = 0
@@ -55,9 +56,10 @@ class RobotConnection(BaseConnection):
 
 
     async def execute_commands(self):
-        while not self._closed:
+        while not self._end_tasks:
             parameters = await self._packet_queue.get()
             if parameters is None:
+                self._packet_queue.task_done()
                 break
 
             if parameters.command == 'waitState':
@@ -226,6 +228,7 @@ class RobotConnection(BaseConnection):
     def close(self):
         print("Robot disconnected")
         self._identified = False
+        self._end_tasks = True
         self._wait_for_ack.set()
         self._wait_for_status.set()
         self._packet_queue.put_nowait(None)
