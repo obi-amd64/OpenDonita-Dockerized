@@ -25,6 +25,8 @@ class PowerWater {
         this._last_track = "";
         this._rotation = 0;
         this._back_mode = 0;
+        this._cb_queue = [];
+        this._waiting_answer = false;
 
         $(window).resize(() => {
             this._last_map = "";
@@ -59,7 +61,7 @@ class PowerWater {
             } else {
                 var status = 1;
             }
-            $.getJSON(`robot/all/sound?status=${status}`);
+            this._send_command(`robot/all/sound?status=${status}`);
         });
 
         $("#back").click(() => {
@@ -76,25 +78,24 @@ class PowerWater {
 
         $("#home").click(() => {
             if (this._allowHome) {
-                $.getJSON(`robot/${this._robot}/return`);
+                this._send_command(`robot/${this._robot}/return`);
             }
         });
 
         $("#startstop").click(() => {
             if (this._allowStart) {
-                $.getJSON(`robot/${this._robot}/setDefaults`).done(() => {
-                    $.getJSON(`robot/${this._robot}/clean`);
-                });
+                this._send_command(`robot/${this._robot}/setDefaults`);
+                this._send_command(`robot/${this._robot}/clean`);
             } else if (this._allowStop) {
-                $.getJSON(`robot/${this._robot}/stop`);
+                this._send_command(`robot/${this._robot}/stop`);
             }
         });
         this._set_sizes();
         this._read_defaults();
         this._update_status();
-        $.getJSON(`robot/${this._robot}/updateMap`);
-        $.getJSON(`robot/${this._robot}/notifyConnection`);
-        $.getJSON(`robot/${this._robot}/askStatus`);
+        this._send_command(`robot/${this._robot}/updateMap`);
+        this._send_command(`robot/${this._robot}/notifyConnection`);
+        this._send_command(`robot/${this._robot}/askStatus`);
         setInterval(this._update_status.bind(this), 1000);
     }
 
@@ -108,13 +109,44 @@ class PowerWater {
         }
     }
 
+    _send_command(command, cb) {
+        console.log(`Send command ${command}`);
+        if (this._waiting_answer) {
+            console.log("Waiting");
+            if (!cb) {
+                cb = null;
+            }
+            this._cb_queue.push([command, cb]);
+            return;
+        }
+        this._waiting_answer = true;
+        $.getJSON(command).done((answer) => {
+            console.log(`Done ${command}`);
+            if (cb) {
+                cb(answer);
+            }
+            this._waiting_answer = false;
+            if (this._cb_queue.length != 0) {
+                let newcb = this._cb_queue.shift();
+                this._send_command(newcb[0], newcb[1]);
+            }
+        }).fail(() => {
+            console.log(`Failed ${command}`);
+            this._waiting_answer = false;
+            if (this._cb_queue.length != 0) {
+                let newcb = this._cb_queue.shift();
+                this._send_command(newcb[0], newcb[1]);
+            }
+        });
+    }
+
     _store_value(name, value) {
         this._values[name] = value;
-        $.getJSON(`robot/${this._robot}/setProperty?key=${name}&value=${value}`);
+        this._send_command(`robot/${this._robot}/setProperty?key=${name}&value=${value}`);
     }
 
     _read_defaults(cb) {
-        $.getJSON(`robot/${this._robot}/getProperty`).done((received) => {
+        this._send_command(`robot/${this._robot}/getProperty`, (received) => {
             if (received['error'] == 0) {
                 for (let key in received['value']) {
                     this._values[key] = received['value'][key];
@@ -122,22 +154,22 @@ class PowerWater {
                 this._set_fan(this._values['fan'], false);
                 this._set_water(this._values['water'], false);
                 this._set_mode(this._values['mode'], false);
-                if (cb) {
-                    cb();
-                }
+            }
+            if (cb) {
+                cb();
             }
         });
     }
 
     _update_status() {
-        $.getJSON(`robot/list`).done(function (received) {
+        this._send_command(`robot/list`, function (received) {
             if (received['value'].length == 0) {
                 $('#noconga').css('z-index', 10);
             } else {
                 $('#noconga').css('z-index', 0);
             }
-        });
-        $.getJSON(`robot/${this._robot}/getStatus`).done((received) => {
+        }.bind(this));
+        this._send_command(`robot/${this._robot}/getStatus`, (received) => {
             if (received['error'] != 0) {
                 return;
             }
@@ -196,7 +228,7 @@ class PowerWater {
                 this._counter++;
                 if (this._counter >= 5) {
                     // Update map each 5 seconds
-                    $.getJSON(`robot/${this._robot}/updateMap`);
+                    this._send_command(`robot/${this._robot}/updateMap`);
                     this._counter = 0;
                 }
             }
@@ -453,7 +485,7 @@ class PowerWater {
         $(name).addClass("powerwater_active");
         if (update) {
             this._store_value('water', xi);
-            $.getJSON(`robot/all/watertank?speed=${xi}`);
+            this._send_command(`robot/all/watertank?speed=${xi}`);
         }
     }
 
@@ -469,7 +501,7 @@ class PowerWater {
         $(name).addClass("powerwater_active");
         if (update) {
             this._store_value('fan', xi);
-            $.getJSON(`robot/all/fan?speed=${xi}`);
+            this._send_command(`robot/all/fan?speed=${xi}`);
         }
     }
 
@@ -483,7 +515,7 @@ class PowerWater {
         if (update) {
             this._store_value('mode', xi);
             let mode = this._modes[xi];
-            $.getJSON(`robot/all/mode?type=${mode}`);
+            this._send_command(`robot/all/mode?type=${mode}`);
         }
     }
 }
