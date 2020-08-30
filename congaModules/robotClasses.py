@@ -21,7 +21,6 @@ import struct
 import asyncio
 import types
 import traceback
-import time
 
 from .robotManager import robot_manager
 from .baseServer import BaseServer, BaseConnection
@@ -57,7 +56,6 @@ class RobotConnection(BaseConnection):
         self._loop.create_task(self.manual_loop())
         self._current_direction = 0
         self._desired_direction = 0
-        self._manual_time = time.time()
         self._manual_event = asyncio.Event()
 
 
