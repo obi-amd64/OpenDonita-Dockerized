@@ -69,12 +69,13 @@ class RobotConnection(BaseConnection):
 
         while not self._end_tasks:
             try:
-                self._manual_event.clear()
                 if self._current_direction == 0:
                     await self._manual_event.wait()
+                    self._manual_event.clear()
                 else:
                     try:
                         await asyncio.wait_for(self._manual_event.wait(), 2.2)
+                        self._manual_event.clear()
                     except asyncio.TimeoutError:
                         # after 2.2 seconds without receiving calls, stop the robot
                         if self._current_direction != 0:
