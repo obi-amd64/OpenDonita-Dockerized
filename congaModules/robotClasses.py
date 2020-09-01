@@ -289,6 +289,8 @@ class RobotConnection(BaseConnection):
         elif command == 'stayStill':
             parameters.command = 'manual'
             parameters.direction = 0
+        elif command == 'radar':
+            parameters.command = '143'
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"

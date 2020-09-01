@@ -319,6 +319,11 @@ while True:
         print("Update status")
         continue
 
+    if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "143"):
+        print("Radar")
+        send_packet(0x00fa, 0x01, header[3], 0x00, get_status())
+        continue
+
     if compare_packet(header, None, 0x00c800fa, 0x01090000, None, 0x00) and check_command(data, "108"):
         if 'direction' in data['value']:
             try:

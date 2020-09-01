@@ -130,6 +130,11 @@ class PowerWater {
             this._send_command(`robot/all/sound?status=${status}`);
         });
 
+        $("#radar").click(() => {
+            console.log("Pulsado");
+            this._send_command(`robot/all/radar`);
+        });
+
         $("#back").click(() => {
             $("#div_settings").hide();
             this._back_mode = 0;
