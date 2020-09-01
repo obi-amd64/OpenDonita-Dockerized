@@ -75,8 +75,9 @@ to the charger.
 The *play* button: this triangle starts a new clean cycle, and will change to a square (or *stop*) button, which will
 stop the clean cycle.
 
-The *settings* button: this button will open a popup where it is possible to choose the fan power, the water flux, and
-the clean mode:
+The *map/manual control* button: it alternates between MAP mode and MANUAL CONTROL mode.
+
+The *settings* button: this button will open a popup where it is possible to choose the fan power, the water flux, the clean mode and the sound mode:
 
 ![The settings popup](capture2.png)
 
@@ -85,6 +86,8 @@ This configuration will be remembered even if the robot is turned off and on aga
 During cleaning, the app will generate the map in real time:
 
 ![Map example](capture3.png)
+
+Doing a displacement with the finger over the screen (or with the mouse) will rotate the map 90 degrees in the specified direction.
 
 ## Using the Android App
 
