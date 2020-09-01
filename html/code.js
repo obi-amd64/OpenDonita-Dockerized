@@ -51,6 +51,8 @@ class PowerWater {
         let mapcanvas = document.getElementById('mapcanvas');
         mapcanvas.addEventListener('pointerdown', (event) => {
             if (this._showing_map) {
+                this._rotationx = event.clientX / this._canvas_width;
+                this._rotationy = event.clientY / this._canvas_height;
                 return;
             }
             let x = event.clientX / this._canvas_width;
@@ -75,7 +77,12 @@ class PowerWater {
 
         mapcanvas.addEventListener('pointerup', () => {
             if (this._showing_map) {
-                this.rotate_map();
+                let x = event.clientX / this._canvas_width;
+                let y = event.clientY / this._canvas_height;
+                let cross = this._rotationx * y - this._rotationy * x;
+                if (Math.abs(cross) > 0.1) {
+                    this.rotate_map(cross > 0);
+                }
             } else {
                 this._move_to("stop");
             }
@@ -584,10 +591,17 @@ class PowerWater {
         }
     }
 
-    rotate_map() {
-        this._rotation++;
-        if (this._rotation >= 4) {
-            this._rotation = 0;
+    rotate_map(clockwise) {
+        if (clockwise) {
+            this._rotation++;
+            if (this._rotation >= 4) {
+                this._rotation = 0;
+            }
+        } else {
+            this._rotation--;
+            if (this._rotation < 0) {
+                this._rotation = 3;
+            }
         }
         this._last_map = "";
         this._last_track = "";
