@@ -173,6 +173,11 @@ The available commands are:
 * **watertank**: sets the watertank speed. It has one parameter, *speed*, with a value from 0 to 3 (bigger value means more speed)
 * **sound**: allows to enable or disable the buzzer. It has one parameter, *status*, with a zero value to disable it, or one value
 to enable it.
+* **goForward**: manual control. Makes the robot to advance. Must be resent periodically (every two seconds) to keep it active, or the server will stop the movement automatically.
+* **goBack**: manual control. Makes the robot to move backwards. Must be resent periodically (every two seconds) to keep it active, or the server will stop the movement automatically.
+* **turnLeft**: manual control. Makes the robot turn counterclockwise. Must be resent periodically (every two seconds) to keep it active, or the server will stop the movement automatically.
+* **turnRight**: manual control. Makes the robot turn clockwise. Must be resent periodically (every two seconds) to keep it active, or the server will stop the movement automatically.
+* **stayStill**: manual control. Makes the robot to stop the last movement order sent.
 * **wait**: allows to wait a configurable number of seconds before continuing executing the commands in the queue. It has one parameter,
 *seconds*, with a float/integer value expressing the number of seconds to wait.
 * **waitState**: allows to wait for the robot to be in an specific state before continuing executing the commands in the queue. It has one parameter, *state*, which can have any of these values:
