@@ -50,6 +50,9 @@ class PowerWater {
 
         let mapcanvas = document.getElementById('mapcanvas');
         mapcanvas.addEventListener('pointerdown', (event) => {
+            if (this._showing_map) {
+                return;
+            }
             let x = event.clientX / this._canvas_width;
             let y = event.clientY / this._canvas_height;
             if ((x <= 0.5) && (x <= y) && (y <= (1-x))) {
