@@ -277,6 +277,7 @@ class PowerWater {
                 return;
             }
             console.log(received['value']['battery']);
+            document.getElementById("battery_text_level").innerHTML = `${received['value']['battery']}%`;
             // audio enabled/disabled
             if (received['value']['voice'] == "2") {
                 this._audio = true;

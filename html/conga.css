@@ -83,6 +83,10 @@
         grid-row: 1/5;
         grid-column: 5;
     }
+
+    #battery_text_level {
+        font-size: 90%;
+    }
 }
 
 @media screen and (max-aspect-ratio: 1/1) {
@@ -168,6 +172,10 @@
     #back {
         grid-row: 5;
         grid-column: 1/5;
+    }
+
+    #battery_text_level {
+        font-size: 40%;
     }
 }
 
@@ -301,4 +309,8 @@ span.powerwater_active {
 div.battery_common {
     background-color: #fff;
     border: 2px solid #000;
+}
+
+#battery_text_level {
+    color: #ffffff;
 }
