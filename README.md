@@ -8,7 +8,7 @@ All the documentation is in my personal blog: https://blog.rastersoft.com/?p=232
 
 ## Dependencies
 
-The server requires python 3.5 or greater and the *iot-upnp* module. It can be installed with
+The server requires python 3.6 or greater and the *iot-upnp* module. It can be installed with
 
     sudo python3 -m pip install iot-upnp
 
