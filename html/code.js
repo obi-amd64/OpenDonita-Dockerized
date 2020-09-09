@@ -51,8 +51,8 @@ class PowerWater {
         let mapcanvas = document.getElementById('mapcanvas');
         mapcanvas.addEventListener('pointerdown', (event) => {
             if (this._showing_map) {
-                this._rotationx = event.clientX / this._canvas_width;
-                this._rotationy = event.clientY / this._canvas_height;
+                this._rotationx = (event.clientX / this._canvas_width) - 0.5;
+                this._rotationy = (event.clientY / this._canvas_height) - 0.5;
                 return;
             }
             let x = event.clientX / this._canvas_width;
@@ -77,8 +77,8 @@ class PowerWater {
 
         mapcanvas.addEventListener('pointerup', () => {
             if (this._showing_map) {
-                let x = event.clientX / this._canvas_width;
-                let y = event.clientY / this._canvas_height;
+                let x = (event.clientX / this._canvas_width) - 0.5;
+                let y =  (event.clientY / this._canvas_height) - 0.5;
                 let cross = this._rotationx * y - this._rotationy * x;
                 if (Math.abs(cross) > 0.1) {
                     this.rotate_map(cross > 0);
