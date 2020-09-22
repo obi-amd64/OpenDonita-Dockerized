@@ -197,7 +197,8 @@ loop = asyncio.get_event_loop()
 
 http_server.configure(registered_pages, loop, port_http)
 robot_server.configure(loop, port_bona)
-upnp_announcer.configure(loop)
+if port_http == 80:
+    upnp_announcer.configure(loop)
 
 try:
     loop.run_forever()
