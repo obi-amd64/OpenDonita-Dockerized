@@ -274,13 +274,18 @@ class PowerWater {
             if (received['value'].length == 0) {
                 $('#noconga').css('z-index', 10);
             } else {
-                $('#noconga').css('z-index', 0);
+                this._read_status();
             }
         }.bind(this));
+    }
+
+    _read_status() {
         this._send_command(`robot/${this._robot}/getStatus`, (received) => {
             if (received['error'] != 0) {
+                $('#noconga').css('z-index', 10);
                 return;
             }
+            $('#noconga').css('z-index', 0);
             console.log(received['value']['battery']);
             document.getElementById("battery_text_level").innerHTML = `${received['value']['battery']}%`;
             // audio enabled/disabled
