@@ -338,14 +338,6 @@ class PowerWater {
                 $("#battery_level").css("height", `${bat_level}%`);
                 $("#battery_level").css("width", "100%");
             }
-            if ((mode == 1) || (mode == 4)) {
-                this._counter++;
-                if (this._counter >= 5) {
-                    // Update map each 5 seconds
-                    this._send_command(`robot/${this._robot}/updateMap`);
-                    this._counter = 0;
-                }
-            }
             this._update_canvas(received);
         });
     }

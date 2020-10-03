@@ -41,6 +41,7 @@ class RobotConnection(BaseConnection):
         self._packet_queue = asyncio.Queue()
         self._wait_for_ack = asyncio.Event()
         self._wait_for_status = asyncio.Event()
+        self._wait_for_status2 = asyncio.Event()
         self._packet_id = 1
         self._token = None
         self._deviceId = None
@@ -52,11 +53,13 @@ class RobotConnection(BaseConnection):
         self._waiting_for_command = None
         self.statusUpdate = Signal("status", self)
         self._state = 0
-        self._loop.create_task(self.execute_commands())
-        self._loop.create_task(self.manual_loop())
         self._current_direction = 0
         self._desired_direction = 0
+        self._map_counter = 0
         self._manual_event = asyncio.Event()
+        self._loop.create_task(self.execute_commands())
+        self._loop.create_task(self.manual_loop())
+        self._loop.create_task(self.ask_maps())
 
 
     async def manual_loop(self):
@@ -99,6 +102,23 @@ class RobotConnection(BaseConnection):
                 traceback.print_exc()
 
 
+    async def ask_maps(self):
+        """ Manages asking the map periodically when the robot is working """
+
+        while not self._end_tasks:
+            if ((self._state == '1') or (self._state == '4')):
+                if (self._packet_queue.empty()) and (not self._wait_for_ack.is_set()):
+                    if (self._map_counter == 0):
+                        self.send_command("updateMap", {})
+                    self._map_counter += 1
+                    if self._map_counter >= 5:
+                        self._map_counter = 0
+                await asyncio.sleep(1)
+            else:
+                await self._wait_for_status2.wait()
+                self._wait_for_status2.clear()
+
+
     async def execute_commands(self):
         while not self._end_tasks:
             parameters = await self._packet_queue.get()
@@ -109,8 +129,8 @@ class RobotConnection(BaseConnection):
             if parameters.command == 'waitState':
                 while (parameters.state != self._state) and ((parameters.state != 'home') or ((self._state != '5') and (self._state != '6'))):
                     print(f"Waiting for state {parameters.state}")
-                    self._wait_for_status.clear()
                     await self._wait_for_status.wait()
+                    self._wait_for_status.clear()
 
             elif parameters.command == 'wait':
                 print(f"Waiting {parameters.seconds} seconds")
@@ -304,6 +324,7 @@ class RobotConnection(BaseConnection):
         self._end_tasks = True
         self._wait_for_ack.set()
         self._wait_for_status.set()
+        self._wait_for_status2.set()
         self._manual_event.set()
         self._packet_queue.put_nowait(None)
         super().close()
@@ -362,6 +383,7 @@ class RobotConnection(BaseConnection):
             self._send_payload(payload)
             self._log_payload(payload, "status")
             self._wait_for_status.set()
+            self._wait_for_status2.set()
             return True
         # ACK
         if self._check_header(header, None, 0x000000fa, 0x0001, 0x00):
@@ -411,7 +433,10 @@ class RobotConnection(BaseConnection):
             return
 
         if ('value' in jsonPayload) and ('workState' in jsonPayload['value']):
+            old_state = self._state
             self._state = jsonPayload['value']['workState']
+            if (old_state != self._state) and ((self._state == "1") or (self._state == "4")):
+                self._map_counter = 0
 
         self.statusUpdate.emit(jsonPayload)
 
