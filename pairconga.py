@@ -23,6 +23,8 @@ import tkinter as tk
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        global root
+        root.title("Robot WiFi Pairing")
         self.master = master
         self.pack()
         self.create_widgets()
@@ -42,9 +44,6 @@ class Application(tk.Frame):
         self.pair["text"] = "Pair Robot"
         self.pair["command"] = self.pair_conga
         self.pair.pack(side="top")
-
-    def check_data(self):
-        print("Doing check")
 
     def pair_conga(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
