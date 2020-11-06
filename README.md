@@ -42,7 +42,7 @@ After having done this, you can jump to **Conecting the robot to the new server*
 
 ### The manual way
 
-If you prefer to do everything manually to have more control, follow these instructions.
+If you prefer to do everything manually to have more control, follow these instructions. If not, better do **The easy way**.
 
 To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and
 *hostapd* to build an isolated WiFi network, but in normal operation it is enough to launch *dnsmasq* and redirect the DNS
