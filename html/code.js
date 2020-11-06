@@ -75,7 +75,7 @@ class PowerWater {
             }
         }, false);
 
-        mapcanvas.addEventListener('pointerup', () => {
+        mapcanvas.addEventListener('pointerup', (event) => {
             if (this._showing_map) {
                 let x = (event.clientX / this._canvas_width) - 0.5;
                 let y =  (event.clientY / this._canvas_height) - 0.5;
