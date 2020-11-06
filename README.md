@@ -12,7 +12,35 @@ The server requires python 3.6 or greater and the *iot-upnp* module. It can be i
 
     sudo python3 -m pip install iot-upnp
 
+The */etc/hosts* configurator requires the *netifaces* module, which can be installed with
+
+    sudo python3 -m pip install netifaces
+
 ## Using OpenDoñita
+
+### The easy way
+
+Just take a Raspberry Pi (I tested it with OSMC, but any OS should work, as long as the ports 80 and 20008 aren't in use),
+copy this repository in a folder at $HOME, and run as root the **install.sh** script. It will install the packages needed
+(*dnsmasq*, *python3-pip*, *netifaces* and *iot-upnp*), install the OpenDoñita server, configure the local DNS, and launch
+everything.
+
+Now you have to go to your WiFi router and configure there the IP of that Raspberry Pi as the DNS. This is a must because
+the robot expects to find the server at the domains **bl-app-eu.robotbona.com** and **bl-im-eu.robotbona.com**. This is
+why the installer installs *dnsmasq* and configures those two domains pointing to the same Raspberry Pi.
+
+You can check if everything works fine by opening a browser in your computer and going to **bl-app-eu.robotbona.com**
+(of course, assuming that you haven't changed the DNS in your PC, and it uses whichever the router specifies). It should
+show this:
+
+![The app works, but no Conga is found](capture4.png)
+
+If you receive something different, try first to reboot your computer to ensure that it is using the new DNS, and not
+the old one.
+
+After having done this, you can jump to **Conecting the robot to the new server**
+
+### The manual way
 
 To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and
 *hostapd* to build an isolated WiFi network, but in normal operation it is enough to launch *dnsmasq* and redirect the DNS
@@ -54,18 +82,36 @@ Now you can check if everything works by opening any of the previous domains in 
 
 ## Connecting the robot to the new server
 
-Now there are two ways of connecting the robot to the server:
+Now there are three ways of connecting the robot to the server:
 
 * turn off the WiFi router and turn on again (or stop *hostapd*, wait some seconds, and start it again if you are using
-an isolates WiFi network)
+an isolated WiFi network)
 
 * or turn off the robot for some seconds and turn on it again. This requires removing it from the charging base and
 turning it off with the lateral switch.
 
-when you do it, you should see that, after several seconds, the Wifi light in the robot turns on, and in the server
-screen there are several messages. Now you can control it from the new app.
+* or pair it manually as specified in the next section.
 
-## Using the app
+## Pairing the robot manually
+
+To pair the robot you need a computer with a WiFi adapter. First, put your robot in *pairing mode* by pressing the power
+button until it sends a beep. The Wifi light will blink.
+
+Now, in your computer, search for a WiFi network called *CongaGyro_XXXXXX* (if you are using a robot from another distributor,
+the Wifi SSID can change) and connect to it (it has no password).
+
+After connecting, run in your computer the program **pairconga.py**. It is a python program that should work in Windows,
+Linux and Macintosh (if you have installed python3, of course). It will show a window like this one:
+
+![The pairing app](pair_app.png)
+
+Type in the first field the SSID of your WiFi, in the second field the password, and do click in **Pair robot** button.
+Wait the answer (which should be "Pairing OK"), and now your robot should be paired with the WiFi and connected to your
+local server.
+
+## Using the new app
+
+Now you can open the main app in a browser just by typing the IP address of your RPi.
 
 In the main screen you have four buttons:
 
@@ -95,19 +141,6 @@ The Android app is available in a separate repository: https://gitlab.com/raster
 
 It is just a simple WebView-based app, which uses the uPnP announcements of the main server to automagically locate it
 in the network and open the web app.
-
-## Pairing the robot manually
-
-To pair the robot you need a computer with a WiFi adapter. First, put your robot in *pairing mode* by pressing the power
-button until it sends a beep. The Wifi light will blink.
-
-Now, in your computer, search for a WiFi network called *CongaGyro_XXXXXX* (if you are using a robot from another distributor,
-the Wifi SSID can change) and connect to it (it has no password).
-
-After connecting, run *./configconga.py WIFI_SSID WIFI_PASSWORD* (being WIFI_SSID and WIFI_PASSWORD the SSID and the password
-of your Wifi network).
-
-After about two seconds, your computer will be disconnected from that network, and the robot will connect to your WiFi.
 
 ## REST API
 

@@ -16,7 +16,6 @@
 
 import upnp
 import asyncio
-from .robotManager import robot_manager
 
 class UPNPAnnouncer(object):
     def __init__(self):
@@ -40,13 +39,6 @@ class UPNPAnnouncer(object):
         self._loop = loop
         self._server = upnp.Annoncer(self._device)
         self._server.initLoop(loop)
-        #loop.create_task(self._send_announces())
-
-
-    async def _send_announces(self):
-        while True:
-            self._server.notify()
-            await asyncio.sleep(2)
 
 
 upnp_announcer = UPNPAnnouncer()

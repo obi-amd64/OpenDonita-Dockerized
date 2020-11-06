@@ -169,7 +169,7 @@ def html_server(server_object):
             server_object.send_answer(data, 200, "OK")
         except:
             print("Error 401")
-            server_object.send_answer('<html><head></head><body><h1>401 Error while reading the file</h1><p>There was an erro while trying to read that file</p></body></html>', 401, "Error reading file")
+            server_object.send_answer('<html><head></head><body><h1>401 Error while reading the file</h1><p>There was an error while trying to read that file</p></body></html>', 401, "Error reading file")
     else:
         print("Error 404")
         server_object.send_answer('<html><head></head><body><h1>404 File not found</h1></body></html>', 404, "File not found")
