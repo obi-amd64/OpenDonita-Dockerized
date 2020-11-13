@@ -298,19 +298,19 @@ class PowerWater {
 
             // mode
             let mode = received['value']['workState'];
-            if ((mode == 4) || (mode == 5) || (mode == 6)) {
+            if ((mode == 4) || (mode == 5) || (mode == 6) || (mode == 9) || (mode ==10)) {
                 this._allowHome = false;
                 this._set_src("#home", "home_disabled.svg");
             } else {
                 this._allowHome = true;
                 this._set_src("#home", "home_enabled.svg");
             }
-            if ((mode == 2) || (mode == 5) || (mode == 6)) {
+            if ((mode == 2) || (mode == 5) || (mode == 6) || (mode == 10)) {
                 this._allowStart = true;
             } else {
                 this._allowStart = false;
             }
-            if ((mode == 1) || (mode == 4)) {
+            if ((mode == 1) || (mode == 4) || (mode == 9)) {
                 this._allowStop = true;
             } else {
                 this._allowStop = false;
@@ -324,7 +324,7 @@ class PowerWater {
                     this._set_src("#startstop", "play_disabled.svg");
                 }
             }
-            if (mode == 5) {
+            if ((mode == 5) || (mode == 10)) {
                 $("#charging").show();
             } else {
                 $("#charging").hide();

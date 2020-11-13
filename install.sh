@@ -17,4 +17,4 @@ cp -a congaserver.service /etc/systemd/system/congaserver.service
 systemctl enable congaserver.service
 systemctl enable dnsmasq.service
 systemctl restart dnsmasq.service
-systemctl start congaserver.service
+systemctl restart congaserver.service

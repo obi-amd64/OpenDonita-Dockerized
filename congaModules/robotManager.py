@@ -166,10 +166,10 @@ class Robot(object):
 
         if ('workState' in value) and ('battery' in value):
             state = value['workState']
-            if (state != "5") and (state != "6"):
+            if (state != "5") and (state != "6") and (state != "10"):
                 self._battery_changes_counter = 0
             else:
-                if (self._current_workState == "6") and (state == "5"):
+                if (self._current_workState == "6") and ((state == "5") or (state == "10")):
                     # changed from "charged" to "charging"
                     try:
                         if int(value['battery']) <= self._getPersistentInteger('battery_guard_level', 80):

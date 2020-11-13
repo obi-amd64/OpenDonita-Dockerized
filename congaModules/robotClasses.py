@@ -106,12 +106,13 @@ class RobotConnection(BaseConnection):
         """ Manages asking the map periodically when the robot is working """
 
         while not self._end_tasks:
-            if ((self._state == '1') or (self._state == '4')):
+            # when cleaning (1), or returning to base (4 or 9), refresh the status
+            if ((self._state == '1') or (self._state == '4') or (self._state == '9')):
                 if (self._packet_queue.empty()) and (not self._wait_for_ack.is_set()):
                     if (self._map_counter == 0):
                         self.send_command("updateMap", {})
                     self._map_counter += 1
-                    if self._map_counter >= 5:
+                    if self._map_counter >= 2:
                         self._map_counter = 0
                 await asyncio.sleep(1)
             else:
@@ -127,7 +128,9 @@ class RobotConnection(BaseConnection):
                 break
 
             if parameters.command == 'waitState':
-                while (parameters.state != self._state) and ((parameters.state != 'home') or ((self._state != '5') and (self._state != '6'))):
+                while ((parameters.state != self._state) and (
+                       (parameters.state != 'home') or
+                       ((self._state != '5') and (self._state != '6') and (self._state != '10')))):
                     print(f"Waiting for state {parameters.state}")
                     await self._wait_for_status.wait()
                     self._wait_for_status.clear()
@@ -435,7 +438,7 @@ class RobotConnection(BaseConnection):
         if ('value' in jsonPayload) and ('workState' in jsonPayload['value']):
             old_state = self._state
             self._state = jsonPayload['value']['workState']
-            if (old_state != self._state) and ((self._state == "1") or (self._state == "4")):
+            if (old_state != self._state) and ((self._state == "1") or (self._state == "4") or (self._state == "9")):
                 self._map_counter = 0
 
         self.statusUpdate.emit(jsonPayload)
