@@ -73,7 +73,12 @@ class BaseConnection(object):
             Overwrite only to detect when there are new connections """
 
         while True:
-            data = await self._reader.read(65536)
+            try:
+                data = await self._reader.read(65536)
+            except Exception as e:
+                logging.error(f"Read exception {e}")
+                self.close()
+                break
             if len(data) > 0:
                 self._data += data
                 while True:
