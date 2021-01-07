@@ -314,6 +314,9 @@ class RobotConnection(BaseConnection):
             parameters.direction = 0
         elif command == 'radar':
             parameters.command = '143'
+        elif command == 'closeConnection':
+            logging.info("Closing connection by command")
+            self.close()
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"

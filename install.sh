@@ -6,8 +6,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 apt install dnsmasq python3-pip
-python3 -m pip install netifaces
-python3 -m pip install iot-upnp
+python3 -m pip install netifaces iot-upnp
 mkdir -p /opt/congaserver
 cp -a congaserver.py /opt/congaserver/
 cp -a configconga.py /opt/congaserver/

@@ -218,7 +218,7 @@ class Robot(object):
         self._connection.send_command('waitState', {'state': 'stopped'})
         self._connection.send_command('return', {})
         self._connection.send_command('waitState', {'state': 'home'})
-        self._battery_keeper = 1
+        self._connection.send_command('closeConnection', {})
 
     def httpDataUpdate(self, data):
         for key in data:
