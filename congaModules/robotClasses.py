@@ -21,6 +21,7 @@ import struct
 import asyncio
 import types
 import traceback
+import sys
 
 from .robotManager import robot_manager
 from .baseServer import BaseServer, BaseConnection
@@ -143,6 +144,9 @@ class RobotConnection(BaseConnection):
                 self._desired_direction = parameters.direction
                 self._manual_event.set()
 
+            elif parameters.command == 'close':
+                logging.info("Closing connection by command")
+                sys.exit(-1)
             else: # rest of commands
                 await self._send_packet(parameters)
 
@@ -315,8 +319,7 @@ class RobotConnection(BaseConnection):
         elif command == 'radar':
             parameters.command = '143'
         elif command == 'closeConnection':
-            logging.info("Closing connection by command")
-            self.close()
+            parameters.command = 'close'
         else:
             logging.error(f"Unknown command {command}")
             return 5, "Unknown command"
