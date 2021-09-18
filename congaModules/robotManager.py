@@ -19,6 +19,10 @@ import json
 import os
 import traceback
 
+from PIL import Image, ImageDraw
+import io
+import base64
+
 from .observer import Signal
 
 class RobotManager(object):
@@ -97,47 +101,190 @@ class Robot(object):
     def get_status(self):
         return json.dumps(self._notecmdValues)
 
+    def _paint_map(self, width, height):
+        data = Image.new('RGB', (width, height))
+        if ('map' in self._notecmdValues) and (len(self._notecmdValues['map']) != 0):
+            mapa = base64.b64decode(self._notecmdValues['map'])
+            track = base64.b64decode(self._notecmdValues['track']) [4:]
+            charger = self._notecmdValues['chargerPos'].split(',')
+            chargerX = int(charger[0])
+            chargerY = int(charger[1])
+
+            mapw = mapa[5] * 256 + mapa[6];
+            maph = mapa[7] * 256 + mapa[8];
+            pixels = []
+            pos = 9
+            repetitions = 0
+
+            minx = chargerX
+            maxx = chargerX
+            miny = chargerY
+            maxy = chargerY
+            index = 0
+            errorCharger = False
+            if ((chargerX == -1) or (chargerY == -1)):
+                errorCharger = True
+
+            while pos < len(mapa):
+                if ((mapa[pos] & 0xc0) == 0xc0):
+                    repetitions *= 64
+                    repetitions += mapa[pos] & 0x3F
+                    pos += 1
+                    continue
+                if (repetitions == 0):
+                    repetitions = 1
+                value = mapa[pos]
+                pos += 1
+                for a in range(repetitions):
+                    mul = 64
+                    for b in range(4):
+                        v = (int(value/mul)) & 0x03
+                        pixels.append(v)
+                        mul /= 4
+                        if (v == 0):
+                            index += 1
+                            continue
+                        x = index % mapw
+                        y = int(index / mapw)
+                        index += 1
+                        if (errorCharger):
+                            minx = x
+                            miny = y
+                            maxx = x
+                            maxy = y
+                            errorCharger = False
+                        else:
+                            if (x < minx):
+                                minx = x
+                            if (y < miny):
+                                miny = y
+                            if (x > maxx):
+                                maxx = x
+                            if (y > maxy):
+                                maxy = y
+                repetitions = 0
+
+            ctx = ImageDraw.Draw(data)
+            pos = minx + miny * mapw
+            ctx.rectangle([(0, 0), (width, height)], fill='#ffffff')
+            if (minx <= maxx):
+                radius1 = width / (maxx - minx + 1)
+                radius2 = height / (maxy - miny + 1)
+
+                if (radius2 < radius1):
+                    radius1 = radius2
+                radius2 = radius1 / 2
+                radius3 = int(radius1 * 0.8); # each point is 20cm wide, and the robot is 32cm wide
+
+                for y in range(miny, maxy+1):
+                    for x in range(minx, maxx+1):
+                        pos = x + mapw * y
+                        if (pixels[pos] == 0):
+                            pos += 1
+                            continue
+                        if pixels[pos] == 1:
+                            # Wall
+                            fillStyle = '#000000'
+                        elif pixels[pos] == 2:
+                            # Floor
+                            fillStyle = '#ffff00'
+
+                        nx = (x - minx) * radius1
+                        ny = (y - miny) * radius1
+                        fr1 = nx + radius1
+                        fr2 = ny + radius1
+                        ctx.rectangle([(nx, ny), (fr1, fr2)], fill=fillStyle)
+                        pos += 1
+                strokeStyle = '#00ffff';
+                # Clean zones
+                points = []
+                isx = True
+                for a in track:
+                    if isx:
+                        x = int((a - minx) * radius1 + radius2)
+                        points.append(x)
+                        isx = False
+                    else:
+                        y = int((a - miny) * radius1 + radius2)
+                        points.append(y)
+                        isx = True
+                        ctx.ellipse([x - radius3, y - radius3, x + radius3, y + radius3], fill=strokeStyle)
+                ctx.line(points, fill=strokeStyle, width=radius3*2)
+
+                # robot position
+                fillStyle = '#ff00ff'
+                strokeStyle = '#000000'
+                self._paint_circle(ctx, x, y, radius2, strokeStyle, fillStyle)
+
+                # charger
+                if ((chargerX != -1) and (chargerY != -1)):
+                    fillStyle = '#00ff00'
+                    strokeStyle = '#000000'
+                    x = (chargerX - minx) * radius1 + radius2
+                    y = (chargerY - miny) * radius1 + radius2
+                    self._paint_circle(ctx, x, y, radius2, strokeStyle, fillStyle)
+
+        f = io.BytesIO()
+        data.save(f, "PNG")
+        return f.getvalue()
+
+    def _paint_circle(self, ctx, x, y, radius, strokeStyle, fillStyle):
+        ctx.ellipse([x - radius, y - radius, x + radius, y + radius], fill = strokeStyle)
+        radius = int(radius/2)
+        ctx.ellipse([x - radius, y - radius, x + radius, y + radius], fill = fillStyle)
+
     def send_command(self, command, params):
         if self._connection is None:
-            return 3, '"Not connected"'
+            return "application/json", 3, '"Not connected"'
 
         if command == 'setStatus':
             for key in params:
                 if key not in self._notecmdKeys:
                     continue
                 self._notecmdValues[key] = params[key]
-            return 0, self.get_status()
+            return "application/json", 0, self.get_status()
+
+        if command == 'getMap':
+            try:
+                w = int(params['width'])
+            except:
+                w = 640
+            try:
+                h = int(params['height'])
+            except:
+                h = 640
+            return "image/png", 0, self._paint_map(w,h)
 
         if command == 'getStatus':
-            return 0, self.get_status()
+            return "application/json", 0, self.get_status()
 
         if command == 'getProperty':
             if 'key' not in params:
                 data = {}
                 for key in self._persistentData[self._identifier]:
                     data[key] = self._persistentData[self._identifier][key]
-                return 0, json.dumps(data)
+                return "application/json", 0, json.dumps(data)
             if params['key'] not in self._persistentData[self._identifier]:
-                return 8, f'"Key {params["key"]} does not exist in persistent data"'
-            return 0, json.dumps({params["key"]: self._persistentData[self._identifier][params["key"]]})
+                return "application/json", 8, f'"Key {params["key"]} does not exist in persistent data"'
+            return "application/json", 0, json.dumps({params["key"]: self._persistentData[self._identifier][params["key"]]})
 
         if command == 'setProperty':
             if 'key' not in params:
-                return 6, '"Missing parameter (key)"'
+                return "application/json", 6, '"Missing parameter (key)"'
             if 'value' not in params:
-                return 6, '"Missing parameter (value)"'
+                return "application/json", 6, '"Missing parameter (value)"'
             self._persistentData[self._identifier][params['key']] = str(params['value'])
             with open(self._configFile, 'w') as configfile:
                 self._persistentData.write(configfile)
-            return 0, '"OK"'
+            return "application/json", 0, '"OK"'
 
         if command == 'setDefaults':
             self._setDefaults()
-            return 0, '"OK"'
+            return "application/json", 0, '"OK"'
 
         if command == 'resetBattery':
             self._resetBattery()
-            return 0, '"OK"'
+            return "application/json", 0, '"OK"'
 
         return self._connection.send_command(command, params)
 

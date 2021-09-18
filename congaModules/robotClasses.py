@@ -185,7 +185,7 @@ class RobotConnection(BaseConnection):
     def send_command(self, command, params):
         if not self._identified:
             logging.error("Sent a command before the robot has identified itself")
-            return 4, "Not identified"
+            return "application/json", 4, "Not identified"
 
         parameters = types.SimpleNamespace()
         parameters.command = None
@@ -195,15 +195,15 @@ class RobotConnection(BaseConnection):
 
         if command == 'wait':
             if 'seconds' not in params:
-                return 6, "Missing parameter (seconds)"
+                return "application/json", 6, "Missing parameter (seconds)"
             try:
                 parameters.seconds = float(params['seconds'])
             except:
-                return 7, "Invalid value for seconds"
+                return "application/json", 7, "Invalid value for seconds"
             parameters.command = 'wait'
         elif command == 'waitState':
             if 'state' not in params:
-                return 6, "Missing parameter (state)"
+                return "application/json", 6, "Missing parameter (state)"
             if params['state'] == 'cleaning':
                 parameters.state = '1'
             elif params['state'] == 'stopped':
@@ -217,7 +217,7 @@ class RobotConnection(BaseConnection):
             elif params['state'] == 'home':
                 parameters.state = 'home'
             else:
-                return 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
+                return "application/json", 7, "Invalid value (valid values are 'cleaning', 'stopped', 'returning', 'charging', 'charged' and 'home'"
             parameters.command = 'waitState'
         elif command == 'clean':
             logging.info("Starting to clean")
@@ -233,7 +233,7 @@ class RobotConnection(BaseConnection):
             parameters.command = '131'
         elif command == 'sound':
             if "status" not in params:
-                return 6, "Missing parameter (status)"
+                return "application/json", 6, "Missing parameter (status)"
             if params['status'] == '0':
                 logging.info("Disabling sound")
                 parameters.command = '125'
@@ -241,11 +241,11 @@ class RobotConnection(BaseConnection):
                 logging.info("Enabling sound")
                 parameters.command = '123'
             else:
-                return 7, "Invalid value (valid values are 0 and 1)"
+                return "application/json", 7, "Invalid value (valid values are 0 and 1)"
         elif command == 'fan':
             parameters.command = '110'
             if 'speed' not in params:
-                return 6, "Missing parameter (speed)"
+                return "application/json", 6, "Missing parameter (speed)"
             if params['speed'] == '0':
                 parameters.prefix_commands = '"fan":"1"' # OFF
             elif params['speed'] == '1':
@@ -255,12 +255,12 @@ class RobotConnection(BaseConnection):
             elif params['speed'] == '3':
                 parameters.prefix_commands = '"fan":"3"' # TURBO
             else:
-                return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+                return "application/json", 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting fan to {params['speed']}")
         elif command == 'watertank':
             parameters.command = '145'
             if 'speed' not in params:
-                return 6, "Missing parameter (speed)"
+                return "application/json", 6, "Missing parameter (speed)"
             if params['speed'] == '0':
                 parameters.suffix_commands = '"waterTank":"255"' # OFF
             elif params['speed'] == '1':
@@ -270,12 +270,12 @@ class RobotConnection(BaseConnection):
             elif params['speed'] == '3':
                 parameters.suffix_commands = '"waterTank":"20"' # FAST
             else:
-                return 7, "Invalid value (valid values are 0, 1, 2 and 3)"
+                return "application/json", 7, "Invalid value (valid values are 0, 1, 2 and 3)"
             logging.info(f"Setting water to {params['speed']}")
         elif command == 'mode':
             parameters.command = '106'
             if 'type' not in params:
-                return 6, "Missing parameter (type)"
+                return "application/json", 6, "Missing parameter (type)"
             if params['type'] == 'auto':
                 parameters.prefix_commands = '"mode":"11"'
             elif params['type'] == 'gyro':
@@ -291,7 +291,7 @@ class RobotConnection(BaseConnection):
             elif params['type'] == 'scrub':
                 parameters.prefix_commands = '"mode":"10"'
             else:
-                return 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
+                return "application/json", 7, "Invalid value (valid values are 'auto','giro','random','borders','area','x2','scrub')"
             logging.info(f"Setting mode to {params['type']}")
         elif command == 'notifyConnection': # seems to be sent whenever the tablet connects to the server
             parameters.command = '400'
@@ -322,10 +322,11 @@ class RobotConnection(BaseConnection):
             parameters.command = 'close'
         else:
             logging.error(f"Unknown command {command}")
-            return 5, "Unknown command"
+            return "application/json", 5, "Unknown command"
 
         self._packet_queue.put_nowait(parameters)
-        return 0, "{}"
+        return "application/json", 0, "{}"
+
 
     def close(self):
         print("Robot disconnected")
