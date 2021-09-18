@@ -19,6 +19,7 @@
 import socket
 import sys
 import tkinter as tk
+import urllib.parse
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -40,6 +41,11 @@ class Application(tk.Frame):
         self.password = tk.Entry(self)
         self.password.pack(side = "top")
 
+        self.dirip_text = tk.Label(self, text = "OpenDoñita Server IP:")
+        self.dirip_text.pack(side = "top")
+        self.dirip = tk.Entry(self)
+        self.dirip.pack(side = "top")
+
         self.pair = tk.Button(self)
         self.pair["text"] = "Pair Robot"
         self.pair["command"] = self.pair_conga
@@ -50,8 +56,17 @@ class Application(tk.Frame):
 
         server_address = ('192.168.4.1', 80)
         sock.connect(server_address)
+        ssid = urllib.parse.quote(self.ssid.get())
+        password = urllib.parse.quote(self.password.get())
+        ipdata = self.dirip.get()
+        if (ipdata == ''):
+            ip1 = 'bl-app-eu.robotbona.com'
+            ip2 = 'bl-im-eu.robotbona.com'
+        else:
+            ip1 = urllib.parse.quote(ipdata)
+            ip2 = urllib.parse.quote(ipdata)
 
-        message = f'GET /robot/getRobotInfo.do?ssid={self.ssid.get()}&pwd={self.password.get()}&jDomain=bl-app-eu.robotbona.com&jPort=8082&sDomain=bl-im-eu.robotbona.com&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
+        message = f'GET /robot/getRobotInfo.do?ssid={ssid}&pwd={password}&jDomain={ip1}&jPort=8082&sDomain={ip2}&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
 
         sock.sendall(message.encode('utf8'))
 
@@ -65,6 +80,8 @@ class Application(tk.Frame):
         self.password.forget()
         self.password_text.forget()
         self.pair.forget()
+        self.dirip.forget()
+        self.dirip_text.forget()
         if (received.find("200")):
             self.ssid_text["text"] = "Pairing OK"
         else:

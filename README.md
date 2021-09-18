@@ -12,75 +12,17 @@ The server requires python 3.6 or greater and the *iot-upnp* module. It can be i
 
     sudo python3 -m pip install iot-upnp
 
-The */etc/hosts* configurator requires the *netifaces* module, which can be installed with
-
-    sudo python3 -m pip install netifaces
-
 ## Using OpenDoñita
 
 ### The easy way
 
 Just take a Raspberry Pi (I tested it with OSMC, but any OS should work, as long as the ports 80 and 20008 aren't in use),
 copy this repository in a folder at $HOME, and run as root the **install.sh** script. It will install the packages needed
-(*dnsmasq*, *python3-pip*, *netifaces* and *iot-upnp*), install the OpenDoñita server, configure the local DNS, and launch
-everything.
-
-Now you have to go to your WiFi router and configure there the IP of that Raspberry Pi as the DNS. This is a must because
-the robot expects to find the server at the domains **bl-app-eu.robotbona.com** and **bl-im-eu.robotbona.com**. This is
-why the installer installs *dnsmasq* and configures those two domains pointing to the same Raspberry Pi.
-
-You can check if everything works fine by opening a browser in your computer and going to **bl-app-eu.robotbona.com**
-(of course, assuming that you haven't changed the DNS in your PC, and it uses whichever the router specifies). It should
-show this:
+(*python3-pip* and *iot-upnp*), install the OpenDoñita server, and launch everything.
 
 ![The app works, but no Conga is found](capture4.png)
 
-If you receive something different, try first to reboot your computer to ensure that it is using the new DNS, and not
-the old one.
-
 After having done this, you can jump to **Conecting the robot to the new server**
-
-### The manual way
-
-If you prefer to do everything manually to have more control, follow these instructions. If not, better do **The easy way**.
-
-To use it, you must first install your own DNS server in your internal network. I used a Raspberry Pi with *dnsmasq* and
-*hostapd* to build an isolated WiFi network, but in normal operation it is enough to launch *dnsmasq* and redirect the DNS
-petitions from your WiFi router to the Raspberry.
-
-Now, in the computer with the DNS, edit the file */etc/hosts* and add these two entries:
-
-* 192.168.X.Y    bl-app-eu.robotbona.com
-* 192.168.X.Y    bl-im-eu.robotbona.com
-
-being 192.168.X.Y the IP address of the computer where the server will run (usually it should be the Raspberry Pi too).
-This is a must because the robot connects to a server in those domains (which this project replaces), to receive from
-them the commands. The official Android/iPhone app doesn't send commands directly to the robot, but only to the server,
-and it resends them to the robot. Thus, to allow our local server to pose as the official one, we must redirect those
-two domains to our own computer.
-
-IMPORTANT: the new server requires Python 3.6 or later. Keep it into account if you want to reuse a RPi that you are
-already using.
-
-Now restart *dnsmasq* with *sudo systemctl restart netmasq* to ensure that it re-reads the configuration.
-
-The next step is to change the DNS in your WiFi router to point to the Raspberry if you aren't using an isolated WiFi
-network. This is dependant on your specific router.
-
-After doing this, entering those domains in your browser should return an error.
-
-Now, copy all the files of this project in the computer choosen to be your own server, and install it with:
-
-    sudo ./install.sh
-
-After doing this, it will be installed in /opt/congaserver, a new systemd service will be created and enabled (which will
-be useful if the board reboots), but you still will have to launch it manually the first time with:
-
-    sudo systemctl start congaserver.service
-
-Now you can check if everything works by opening any of the previous domains in your browser. You should see this page:
-
-![The new app](capture1.png)
 
 ## Connecting the robot to the new server
 
@@ -107,9 +49,9 @@ Linux and Macintosh (if you have installed python3, of course). It will show a w
 
 ![The pairing app](pair_app.png)
 
-Type in the first field the SSID of your WiFi, in the second field the password, and do click in **Pair robot** button.
-Wait the answer (which should be "Pairing OK"), and now your robot should be paired with the WiFi and connected to your
-local server.
+Type in the first field the SSID of your WiFi, in the second field the password, and in the third field put the IP of
+the device with the OpenDoñita server, and do click in **Pair robot** button. Wait the answer (which should be
+"Pairing OK"), and now your robot should be paired with the WiFi and connected to your local server.
 
 ## Using the new app
 

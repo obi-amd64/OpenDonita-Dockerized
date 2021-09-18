@@ -20,19 +20,22 @@ import socket
 import sys
 import urllib.parse
 
-if len(sys.argv) != 3:
-    print("Usage: configconga.py WIFI_SSID WIFI_PASSWORD")
+length = len(sys.argv)
+
+if (length != 4):
+    print("Usage: configconga.py WIFI_SSID WIFI_PASSWORD OPENDOÑITA_SERVER_IP_ADDRESS")
     sys.exit(1)
+
+ssid = urllib.parse.quote(sys.argv[1])
+pwd =  urllib.parse.quote(sys.argv[2])
+domain = urllib.parse.quote(sys.argv[3])
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 server_address = ('192.168.4.1', 80)
 sock.connect(server_address)
 
-ssid = urllib.parse.quote(sys.argv[1])
-pwd =  urllib.parse.quote(sys.argv[2])
-
-message = f'GET /robot/getRobotInfo.do?ssid={ssid}&pwd={pwd}&jDomain=bl-app-eu.robotbona.com&jPort=8082&sDomain=bl-im-eu.robotbona.com&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
+message = f'GET /robot/getRobotInfo.do?ssid={ssid}&pwd={pwd}&jDomain={domain}&jPort=8082&sDomain={domain}&sPort=20008&cleanSTime=5 HTTP/1.1\r\nUser-Agent: blapp\r\nAccept: application/json\r\nHost: 192.168.4.1\r\nConnection: Keep-Alive\r\nAccept-Encoding: gzip\r\n\r\n'
 
 sock.sendall(message.encode('utf8'))
 
