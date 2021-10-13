@@ -96,7 +96,8 @@ The server offers a REST API and a full HTTP server running at port 80. It recog
 * **/robot**: commands for managing and controlling the robots
 * **anything else**: the file will be searched in the *html* folder
 
-Every time a call returns something, it will be a JSON file with this format:
+Every time a call returns something, it will be a JSON file, with the exception of getMap, which will return a PNG
+directly. The format of a JSON response is:
 
     {
         "error": error_value,
@@ -178,6 +179,8 @@ is passed, only the value for the key specified by it will be returned.
 * **setProperty**: allows to set a property value. It receives two parameters: *key*, with the key to set or modify, and *value*, with
 the new value. The new value is stored in permanent storage immediately. All values are converted into strings before being stored.
 * **setDefaults**: sets the fan, water and clean mode in the robot to the values stored in the properties.
+* **getMap**: returns a PNG picture with the current map. Accepts two parameters: *width* and *height* for the PNG size. The default
+values are 640.
 
 ## Author
 

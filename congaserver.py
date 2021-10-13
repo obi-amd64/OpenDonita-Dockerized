@@ -24,6 +24,7 @@ import random
 import os
 import logging
 import asyncio
+import traceback
 
 from congaModules.robotManager import robot_manager
 from congaModules.httpClasses import http_server
@@ -114,11 +115,15 @@ def robot_action(server_object):
         if robotId == "all":
             for robot_id in robots:
                 robot = robot_manager.get_robot(robot_id)
-                error, answer = robot.send_command(action, server_object.get_params())
+                print(f"Pido {action}")
+                try:
+                    dtype, error, answer = robot.send_command(action, server_object.get_params())
+                except:
+                    traceback.print_exc()
         else:
             if robotId in robots:
                 robot = robot_manager.get_robot(robotId)
-                error, answer = robot.send_command(action, server_object.get_params())
+                dtype, error, answer = robot.send_command(action, server_object.get_params())
             else:
                 server_object.add_header("Content-Type", "application/json")
                 server_object.send_answer('{"error":2, "value":"Invalid robot ID"}', 400, "INVALID_ROBOT_ID")
@@ -127,8 +132,11 @@ def robot_action(server_object):
     if (error is None) or (answer is None):
         answer = '{}'
         error = 0
-    server_object.add_header("Content-Type", "application/json")
-    server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', 200, "")
+    server_object.add_header("Content-Type", dtype)
+    if (dtype == "application/json"):
+        server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', 200, "")
+    else:
+        server_object.send_answer(answer, 200, "")
     server_object.close()
 
 
