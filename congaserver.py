@@ -132,6 +132,7 @@ def robot_action(server_object):
     if (error is None) or (answer is None):
         answer = '{}'
         error = 0
+        dtype = "Content-Type", "application/json"
     server_object.add_header("Content-Type", dtype)
     if (dtype == "application/json"):
         server_object.send_answer('{"error":' + str(error) + ', "value":'+answer+'}', 200, "")
