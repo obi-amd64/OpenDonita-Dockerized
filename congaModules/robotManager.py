@@ -373,6 +373,8 @@ class Robot(object):
                 continue
             self._notecmdValues[key] = data[key]
 
+
+# TODO: add docker support for this (i.e.: write into a volume)
 configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
 try:
     os.makedirs(configPath)

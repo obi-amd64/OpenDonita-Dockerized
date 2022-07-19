@@ -34,8 +34,14 @@ from congaModules.upnpModule import upnp_announcer
 launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 html_path = os.path.join(launch_path, "html")
 
+# TODO: do not log to file when in Docker
 logpath = os.path.join(launch_path, "status.log")
-logging.basicConfig(filename=logpath, level=logging.INFO, format='%(levelname)s: %(asctime)s\n%(message)s')
+logging.basicConfig(filename=logpath, level=logging.INFO,
+                    format='%(levelname)s: %(asctime)s\n%(message)s')
+
+if os.getenv('RUNNINGINDOCKER') == '1':
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
 
 # Errors:
 #
@@ -205,7 +211,10 @@ else:
 loop = asyncio.get_event_loop()
 
 http_server.configure(registered_pages, loop, port_http)
+logging.info("HTTP server started on port " + str(port_http))
 robot_server.configure(loop, port_bona)
+logging.info("Robot server started on port " + str(port_bona))
+
 if port_http == 80:
     upnp_announcer.configure(loop)
 
