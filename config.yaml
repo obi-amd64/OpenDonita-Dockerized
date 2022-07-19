@@ -10,9 +10,10 @@ arch:
   - armv7
   - i386
 ingress: true
+panel_icon: mdi:robot-vacuum
 ports:
   8099/tcp: 8099
   20008/tcp: 20008
 map:
   - config:rw
-panel_icon: mdi:robot-vacuum
+
