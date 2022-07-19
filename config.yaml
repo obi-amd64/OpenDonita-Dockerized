@@ -9,12 +9,12 @@ arch:
   - armhf
   - armv7
   - i386
-ingress-port: 80
+ingress: true
+ingress_port: 0
 ports:
-  80/tcp:
+  80/tcp: 80
   20008/tcp: 20008
+host-network: true
 map:
   - config:rw
-environment:
-  HOME: /config
-  RUNNINGINDOCKER: '1'
+
