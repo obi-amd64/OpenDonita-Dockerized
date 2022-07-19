@@ -10,9 +10,8 @@ arch:
   - armv7
   - i386
 ingress: true
-ingress_port: 0
 ports:
-  80/tcp: 80
+  8099/tcp: 
   20008/tcp: 20008
 host-network: true
 map:

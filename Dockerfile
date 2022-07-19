@@ -15,10 +15,10 @@ COPY congaModules ./congaModules
 COPY html ./html
 
 # Web server
-EXPOSE 80
+EXPOSE 8099
 # Robot server
 EXPOSE 20008
 
 # Use unbuffered output for the logs
 #CMD ["/bin/sh"]
-CMD ["python3", "congaserver.py"]
+CMD ["python3", "congaserver.py", "8099", "20008"]
