@@ -2,9 +2,11 @@ ARG BUILD_FROM
 FROM $BUILD_FROM
 
 # Install requirements for add-on
-RUN apk add --no-cache python3 py3-pip
-
-RUN python3 -m pip install iot-upnp pillow
+ENV PYTHONUNBUFFERED=1
+RUN apk add --update --no-cache python3 py3-pip gcc python3-dev libc-dev \
+    linux-headers && ln -sf python3 /usr/bin/python
+RUN apk add --no-cache 
+RUN python -m pip install pillow iot-upnp
 
 WORKDIR /app
 COPY congaserver.py .
@@ -20,4 +22,4 @@ EXPOSE 80
 EXPOSE 20008
 
 # Use unbuffered output for the logs
-CMD ["python3", "-u", "congaserver.py"]
+CMD ["python3", "congaserver.py"]
