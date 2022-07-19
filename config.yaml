@@ -9,7 +9,6 @@ arch:
   - armhf
   - armv7
   - i386
-startup: before
 ports:
-  - 80/tcp: 8000
-  - 20008/tcp: 20008
+  80/tcp: 8000
+  20008/tcp: 20008
