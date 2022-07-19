@@ -14,4 +14,4 @@ ports:
   20008/tcp: 20008
 environment:
   HOME: /config
-  RUNNINGINDOCKER: 1
+  RUNNINGINDOCKER: '1'
