@@ -9,8 +9,9 @@ arch:
   - armhf
   - armv7
   - i386
+ingress-port: 80
 ports:
-  80/tcp: 8000
+  80/tcp:
   20008/tcp: 20008
 map:
   - config:rw
