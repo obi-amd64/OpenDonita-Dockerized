@@ -1,6 +1,6 @@
 name: "Open Doñita"
 description: "The Open Doñita server"
-version: "0.2.1"
+version: "0.3.1"
 slug: "opendonita"
 init: false
 arch:
