@@ -15,4 +15,4 @@ ports:
   20008/tcp: 20008
 map:
   - config:rw
-
+panel_icon: mdi:robot-vacuum
