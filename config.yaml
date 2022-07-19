@@ -13,7 +13,6 @@ ingress: true
 ports:
   8099/tcp: 8099
   20008/tcp: 20008
-host-network: true
 map:
   - config:rw
 
