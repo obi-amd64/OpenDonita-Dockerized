@@ -1,6 +1,10 @@
-FROM python:3.9-slim
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
-RUN python -m pip install iot-upnp pillow
+# Install requirements for add-on
+RUN apk add --no-cache python3 py3-pip
+
+RUN python3 -m pip install iot-upnp pillow
 
 WORKDIR /app
 COPY congaserver.py .
@@ -16,4 +20,4 @@ EXPOSE 80
 EXPOSE 20008
 
 # Use unbuffered output for the logs
-CMD ["python", "-u", "congaserver.py"]
+CMD ["python3", "-u", "congaserver.py"]
