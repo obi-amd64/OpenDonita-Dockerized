@@ -1,7 +1,7 @@
 name: "Open Doñita"
 description: "The Open Doñita server"
 version: "0.1.0"
-slug: "open_donita"
+slug: "opendonita"
 init: false
 arch:
   - aarch64
@@ -12,6 +12,8 @@ arch:
 ports:
   80/tcp: 8000
   20008/tcp: 20008
+map:
+  - config:rw
 environment:
   HOME: /config
   RUNNINGINDOCKER: '1'

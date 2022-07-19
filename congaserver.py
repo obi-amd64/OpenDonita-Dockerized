@@ -39,8 +39,8 @@ logpath = os.path.join(launch_path, "status.log")
 logging.basicConfig(filename=logpath, level=logging.INFO,
                     format='%(levelname)s: %(asctime)s\n%(message)s')
 
-if os.getenv('RUNNINGINDOCKER') == '1':
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+#if os.getenv('RUNNINGINDOCKER') == '1':
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 logging.info("Logger started")
 

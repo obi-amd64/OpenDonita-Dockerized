@@ -14,9 +14,6 @@ COPY configconga.py .
 COPY congaModules ./congaModules
 COPY html ./html
 
-ENV RUNNINGINDOCKER 1
-ENV HOME '/config'
-
 # Web server
 EXPOSE 80
 # Robot server
