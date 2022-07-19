@@ -375,7 +375,7 @@ class Robot(object):
 
 
 # TODO: add docker support for this (i.e.: write into a volume)
-configPath = "/config/congaserver" # os.path.join(os.getenv("HOME"), ".config", "congaserver")
+configPath = "/config/opendonita" # os.path.join(os.getenv("HOME"), ".config", "congaserver")
 try:
     os.makedirs(configPath)
 except:
