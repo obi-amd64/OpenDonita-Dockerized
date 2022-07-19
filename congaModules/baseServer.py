@@ -28,7 +28,7 @@ class BaseServer(object):
 
     def configure(self, loop, port, address = ''):
         self._loop = loop
-        coro = asyncio.start_server(self._handle, address, port, loop=loop)
+        coro = asyncio.start_server(self._handle, address, port)
         self._server = loop.run_until_complete(coro)
 
     def close(self):

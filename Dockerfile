@@ -14,7 +14,8 @@ COPY configconga.py .
 COPY congaModules ./congaModules
 COPY html ./html
 
-ENV RUNNINGINDOCKER=1
+ENV RUNNINGINDOCKER 1
+ENV HOME '/config'
 
 # Web server
 EXPOSE 80
@@ -22,4 +23,5 @@ EXPOSE 80
 EXPOSE 20008
 
 # Use unbuffered output for the logs
+#CMD ["/bin/sh"]
 CMD ["python3", "congaserver.py"]

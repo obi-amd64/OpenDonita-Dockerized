@@ -12,3 +12,6 @@ arch:
 ports:
   80/tcp: 8000
   20008/tcp: 20008
+environment:
+  HOME: /config
+  RUNNINGINDOCKER: 1

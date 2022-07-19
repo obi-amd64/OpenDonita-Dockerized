@@ -42,6 +42,8 @@ logging.basicConfig(filename=logpath, level=logging.INFO,
 if os.getenv('RUNNINGINDOCKER') == '1':
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
+logging.info("Logger started")
+
 
 # Errors:
 #
@@ -208,7 +210,7 @@ else:
     port_http = 80
     port_bona = 20008
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop() #asyncio.get_event_loop()
 
 http_server.configure(registered_pages, loop, port_http)
 logging.info("HTTP server started on port " + str(port_http))
