@@ -8,6 +8,7 @@ fi
 apt install python3-pip
 python3 -m pip install iot-upnp pillow
 mkdir -p /opt/congaserver
+cp -a init.py /opt/congaserver/
 cp -a congaserver.py /opt/congaserver/
 cp -a configconga.py /opt/congaserver/
 cp -a congaModules /opt/congaserver/

@@ -24,6 +24,8 @@ import io
 import base64
 
 from .observer import Signal
+from init import running_in_docker
+
 
 class RobotManager(object):
     def __init__(self, config_path):
@@ -374,10 +376,10 @@ class Robot(object):
             self._notecmdValues[key] = data[key]
 
 
-# TODO: add docker support for this (i.e.: write into a volume)
-configPath = "/data/" # os.path.join(os.getenv("HOME"), ".config", "congaserver")
-try:
-    os.makedirs(configPath)
-except:
-    pass
+if running_in_docker:
+    configPath = "/data/"
+else:
+    configPath = os.path.join(os.getenv("HOME"), ".config", "congaserver")
+    os.makedirs(configPath, exist_ok=True)
+
 robot_manager = RobotManager(configPath)

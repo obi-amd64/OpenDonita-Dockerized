@@ -16,34 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-
-
-import sys
-from urllib.parse import parse_qs
 import random
 import os
 import logging
 import asyncio
 import traceback
 
+from init import port_bona, port_http, running_in_docker, html_path
+
 from congaModules.robotManager import robot_manager
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
 from congaModules.upnpModule import upnp_announcer
-
-launch_path = os.path.abspath(os.path.dirname(sys.argv[0]))
-html_path = os.path.join(launch_path, "html")
-
-# TODO: do not log to file when in Docker
-logpath = os.path.join(launch_path, "status.log")
-logging.basicConfig(filename=logpath, level=logging.INFO,
-                    format='%(levelname)s: %(asctime)s\n%(message)s')
-
-#if os.getenv('RUNNINGINDOCKER') == '1':
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
-logging.info("Logger started")
-
 
 # Errors:
 #
@@ -56,6 +40,7 @@ logging.info("Logger started")
 # 6: Missing parameter
 # 7: Invalid value (out of range, or similar)
 # 8: Key doesn't exist in persistent data
+
 
 def robot_clear_time(server_object):
     server_object.convert_data()
@@ -158,7 +143,6 @@ def robot_list(server_object):
 
 
 def html_server(server_object):
-    global html_path
 
     path = server_object.get_path()
     while (path != '') and ((path[0] == '/') or (path[0] == '.')):
@@ -202,22 +186,14 @@ registered_pages = {
     '/*': html_server
 }
 
-
-if len(sys.argv) > 2:
-    port_http = int(sys.argv[1])
-    port_bona = int(sys.argv[2])
-else:
-    port_http = 80
-    port_bona = 20008
-
-loop = asyncio.new_event_loop() #asyncio.get_event_loop()
+loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
 
 http_server.configure(registered_pages, loop, port_http)
 logging.info("HTTP server started on port " + str(port_http))
 robot_server.configure(loop, port_bona)
 logging.info("Robot server started on port " + str(port_bona))
 
-if port_http == 80:
+if port_http == 80 or running_in_docker:
     upnp_announcer.configure(loop)
 
 try:

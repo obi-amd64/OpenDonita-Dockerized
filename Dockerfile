@@ -1,4 +1,4 @@
-ARG BUILD_FROM
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base
 FROM $BUILD_FROM
 
 # Install requirements for add-on
@@ -9,8 +9,9 @@ RUN apk add --no-cache
 RUN python -m pip install pillow iot-upnp
 
 WORKDIR /app
+COPY init.py .
 COPY congaserver.py .
-COPY configconga.py .
+#COPY configconga.py .
 COPY congaModules ./congaModules
 COPY html ./html
 
@@ -21,4 +22,4 @@ EXPOSE 20008
 
 # Use unbuffered output for the logs
 #CMD ["/bin/sh"]
-CMD ["python3", "congaserver.py", "8099", "20008"]
+CMD ["python3", "congaserver.py", "8099", "20008","true"]
