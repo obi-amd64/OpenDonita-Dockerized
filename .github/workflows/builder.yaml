@@ -2,7 +2,6 @@ name: Builder
 
 env:
   BUILD_ARGS: "--test"
-  MONITORED_FILES: "build.yaml config.yaml Dockerfile rootfs"
 
 on:
   push:
@@ -52,7 +51,7 @@ jobs:
 
       - name: Build add-on
         if: steps.check.outputs.build_arch == 'true'
-        uses: home-assistant/builder@2022.09.0
+        uses: home-assistant/builder@2021.09.0
         with:
           args: |
             ${{ env.BUILD_ARGS }} \
