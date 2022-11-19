@@ -16,6 +16,7 @@
 
 import upnp
 import asyncio
+import logging
 
 class UPNPAnnouncer(object):
     def __init__(self):
@@ -34,11 +35,14 @@ class UPNPAnnouncer(object):
             'serviceId': 'rastersoft-com:serviceId:1',
         })
         self._device.addService(self._service)
+        logging.info("UPNP Announcer initialized")
 
     def configure(self, loop):
         self._loop = loop
         self._server = upnp.Annoncer(self._device)
         self._server.initLoop(loop)
+        self._server.notify()
+        logging.info("UPNP Announcer configured")
 
 
 upnp_announcer = UPNPAnnouncer()
