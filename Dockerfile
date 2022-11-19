@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apk add --update --no-cache python3 py3-pip gcc python3-dev libc-dev \
     linux-headers && ln -sf python3 /usr/bin/python
 RUN apk add --no-cache 
-RUN python -m pip install pillow iot-upnp
+RUN python3 -m pip install pillow iot-upnp
 
 WORKDIR /app
 COPY init.py .
