@@ -10,7 +10,7 @@ arch:
   - amd64
   - armhf
   - armv7
-#  - i386 #TODO: find how to install pillow
+  - i386
 ingress: true
 ingress_port: 80
 panel_icon: mdi:robot-vacuum
