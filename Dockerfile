@@ -11,7 +11,6 @@ RUN python -m pip install pillow iot-upnp
 WORKDIR /app
 COPY init.py .
 COPY congaserver.py .
-#COPY configconga.py .
 COPY congaModules ./congaModules
 COPY html ./html
 
@@ -21,5 +20,4 @@ EXPOSE 80
 EXPOSE 20008
 
 # Use unbuffered output for the logs
-#CMD ["/bin/sh"]
-CMD ["python3", "congaserver.py", "80", "20008","true"]
+CMD ["python3","-u", "congaserver.py", "80", "20008","true"]
