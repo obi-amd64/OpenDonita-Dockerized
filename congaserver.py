@@ -27,7 +27,7 @@ from init import port_bona, port_http, running_in_docker, html_path
 from congaModules.robotManager import robot_manager
 from congaModules.httpClasses import http_server
 from congaModules.robotClasses import robot_server
-from congaModules.upnpModule import upnp_announcer
+#from congaModules.upnpModule import upnp_announcer
 
 # Errors:
 #
@@ -193,8 +193,8 @@ logging.info("HTTP server started on port " + str(port_http))
 robot_server.configure(loop, port_bona)
 logging.info("Robot server started on port " + str(port_bona))
 
-if port_http == 80 or running_in_docker:
-    upnp_announcer.configure(loop)
+#if port_http == 80 or running_in_docker:
+#    upnp_announcer.configure(loop)
 
 try:
     loop.run_forever()
