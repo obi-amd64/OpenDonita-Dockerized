@@ -11,7 +11,6 @@ RUN pip3 install pillow
 WORKDIR /app
 COPY --from=git /opt/donita/init.py .
 COPY --from=git /opt/donita/congaserver.py .
-COPY --from=git /opt/donita/configconga.py .
 COPY --from=git /opt/donita/congaModules ./congaModules
 COPY --from=git /opt/donita/html ./html
 
