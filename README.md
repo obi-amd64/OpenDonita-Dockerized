@@ -6,19 +6,11 @@ would work with other robots.
 
 All the documentation is in my personal blog: https://blog.rastersoft.com/?p=2324 (in spanish).
 
-## Dependencies
-
-The server requires python 3.6 or greater and the *iot-upnp* module. It can be installed with
-
-    sudo python3 -m pip install iot-upnp
-
 ## Using OpenDoñita
 
 ### The easy way
 
-Just take a Raspberry Pi (I tested it with OSMC, but any OS should work, as long as the ports 80 and 20008 aren't in use),
-copy this repository in a folder at $HOME, and run as root the **install.sh** script. It will install the packages needed
-(*python3-pip* and *iot-upnp*), install the OpenDoñita server, and launch everything.
+**tbd**
 
 ![The app works, but no Conga is found](capture4.png)
 
@@ -38,20 +30,7 @@ turning it off with the lateral switch.
 
 ## Pairing the robot manually
 
-To pair the robot you need a computer with a WiFi adapter. First, put your robot in *pairing mode* by pressing the power
-button until it sends a beep. The Wifi light will blink.
-
-Now, in your computer, search for a WiFi network called *CongaGyro_XXXXXX* (if you are using a robot from another distributor,
-the Wifi SSID can change) and connect to it (it has no password).
-
-After connecting, run in your computer the program **pairconga.py**. It is a python program that should work in Windows,
-Linux and Macintosh (if you have installed python3, of course). It will show a window like this one:
-
-![The pairing app](pair_app.png)
-
-Type in the first field the SSID of your WiFi, in the second field the password, and in the third field put the IP of
-the device with the OpenDoñita server, and do click in **Pair robot** button. Wait the answer (which should be
-"Pairing OK"), and now your robot should be paired with the WiFi and connected to your local server.
+**tbd**
 
 ## Using the new app
 
@@ -78,13 +57,6 @@ During cleaning, the app will generate the map in real time:
 ![Map example](capture3.png)
 
 Doing a displacement with the finger over the screen (or with the mouse) will rotate the map 90 degrees in the specified direction.
-
-## Using the Android App
-
-The Android app is available in a separate repository: https://gitlab.com/rastersoft/opendonita_android
-
-It is just a simple WebView-based app, which uses the uPnP announcements of the main server to automagically locate it
-in the network and open the web app.
 
 ## REST API
 
@@ -181,13 +153,6 @@ the new value. The new value is stored in permanent storage immediately. All val
 * **setDefaults**: sets the fan, water and clean mode in the robot to the values stored in the properties.
 * **getMap**: returns a PNG picture with the current map. Accepts two parameters: *width* and *height* for the PNG size. The default
 values are 640.
-
-## Home Assistant Add-On
-
-You can run this server as a Home Assistant add-on. Click on the link and add
-the repository to your Home Assistant instance.
-
-[![Open your Home Assistant instance and show the dashboard of a Supervisor add-on.](https://my.home-assistant.io/badges/supervisor_addon.svg)](https://my.home-assistant.io/redirect/supervisor_addon/?addon=523be449_opendonita&repository_url=https%3A%2F%2Fgithub.com%2Fjmservera%2Fjm-hassio-addons)
 
 ## Author
 
